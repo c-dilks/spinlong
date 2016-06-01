@@ -4,6 +4,17 @@
 
 export SPINDIR=$(pwd)
 
+export YEAR=12
+export COUNTS_FILE=/home/dilks/h4/root12fms/scalers12/counts.root
+export RTREE_FILE=/home/dilks/h4/root12fms/scalers12/rtree.root
+export POL_FILE=/home/dilks/h4/root12fms/polar12/pol.root
+export OUTPUT_DIR=/home/dilks/h4/Output
+export REDSET_DIR=/home/dilks/h4/redset
+export MASSCUTS_FILE=mass_cuts_12.dat
+export EXCLUSION_LIST=exclusion_list
+
+export MASS_CUT_TYPE=en
+
 export PHI_LOW=-3.150000
 export PHI_HIGH=3.150000
 export PHI_BINS=1
@@ -31,8 +42,3 @@ export EN_DIV_0=30.000000
 export EN_DIV_1=100.000000
 
 export WHICH_ETA_CUT=0
-
-export YEAR=12
-export COUNTS_FILE=/home/dilks/h4/root12fmsscalers12/counts.root
-export RTREE_FILE=/home/dilks/h4/root12fmsscalers12/rtree.root
-export POL_FILE=/home/dilks/h4/root12fmspolar12/pol.root
