@@ -1,0 +1,44 @@
+#!/bin/bash
+# builds condor batch file for running ReduceData.C on $OUTPUT_DIR/*.root
+# and executes it
+
+if [ -z "$SPINDIR" ]; then
+  echo "ERROR: source env vars first"
+  exit
+fi
+
+job="reduce.bat"
+> $job
+
+echo "building batch file..."
+echo "Executable = `which root`" >> $job
+echo "Universe = vanilla" >> $job
+echo "notification = never" >> $job
+echo "getenv = True" >> $job
+echo '+Experiment = "star"' >> $job
+echo '+Job_Type = "cas"' >> $job
+echo "" >> $job
+
+log="logfiles"
+wd=$(pwd)
+pushd $OUTPUT_DIR > /dev/null
+ls *.root > $wd/filelist
+popd > /dev/null
+
+#cat filelist
+cnt=1
+
+while read line; do
+  echo "Arguments = -b -q ReduceData.C(\\\"${line}\\\")" >> $job
+  echo "Log    = ${log}/Red${cnt}.log" >> $job
+  echo "Output = ${log}/Red${cnt}.out" >> $job
+  echo "Error  = ${log}/Red${cnt}.err" >> $job
+  echo "Queue" >> $job
+  echo "" >> $job
+  let cnt++
+done < filelist
+
+njobs=$(grep -c . filelist)
+rm filelist
+echo "Submitting $njobs jobs to condor"
+condor_submit $job

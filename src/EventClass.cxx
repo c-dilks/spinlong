@@ -140,9 +140,9 @@ Bool_t EventClass::Valid(Int_t idx)
   // single photon cuts
   if(idx==kSph)
   {
-    if( fabs(N12-1)<0.1 &&
-        E12>10 &&
-        Pt>1 ) return true;
+    if( fabs(N12-1)<0.1 /*&&*/
+        /*E12>10 &&*/
+        /*Pt>1*/ ) return true;
   }
 
   // pi0 cuts
@@ -151,18 +151,18 @@ Bool_t EventClass::Valid(Int_t idx)
     if( fabs(N12-2)<0.1 &&
         ClIndex==0 &&
         Z<0.8 &&
-        CheckMass(M12) &&
-        E12>10 &&
-        Pt>1 ) return true;
+        CheckMass(M12) /*&&*/
+        /*E12>10 &&*/
+        /*Pt>1*/ ) return true;
   }
 
   // three or more photons cuts
   else if(idx==kThr)
   {
     if( N12>2 &&
-        M12>0.7 && 
-        E12>10 &&
-        Pt>1 ) return true;
+        M12>0.7 /*&& */
+        /*E12>10 &&*/
+        /*Pt>1*/ ) return true;
   }
 
   // eta meson cuts
@@ -171,9 +171,9 @@ Bool_t EventClass::Valid(Int_t idx)
     if( fabs(N12-2)<0.1 &&
         Z<0.8 &&
         fabs(M12-etm_mass)<0.15 &&
-        FiducialGeom(Eta,Phi,1.5) &&
-        E12>10 &&
-        Pt>1 ) return true;
+        FiducialGeom(Eta,Phi,1.5) /*&&*/
+        /*E12>10 &&*/
+        /*Pt>1*/ ) return true;
   }
 
   // j/psi cuts

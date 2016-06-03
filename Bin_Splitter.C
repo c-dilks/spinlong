@@ -110,7 +110,8 @@ void Bin_Splitter(Int_t year=12,
   /////////////////////////////////////
   // END OF CONTROL VARIABLES SECTION
   //
-  
+  //
+
 
   // begin building env variables file
   char efile[64];
