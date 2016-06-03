@@ -19,8 +19,8 @@ GLIBS = $(ROOTGLIBS) $(SYSLIBS)
 
 #-----------------------------------------------
 
-CXXFILES = Environ.cxx RunInfo.cxx LevelTwo.cxx EventClass.cxx TCUbits.cxx RPscint.cxx TriggerBoolean.cxx BBCtiles.cxx
-HEADERS = Environ.h RunInfo.h LevelTwo.h EventClass.h TCUbits.h RPscint.h TriggerBoolean.h BBCtiles.h
+CXXFILES = Environ.cxx RunInfo.cxx LevelTwo.cxx EventClass.cxx TCUbits.cxx RPscint.cxx BBCtiles.cxx
+HEADERS = Environ.h RunInfo.h LevelTwo.h EventClass.h TCUbits.h RPscint.h BBCtiles.h
 
 #-----------------------------------------------
 

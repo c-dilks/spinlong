@@ -25,24 +25,23 @@ class LevelTwo : public TObject
   public:
     LevelTwo(Environ * env0);
 
-    Int_t Mask(TString trigger0, Int_t dword);
+    Int_t Mask(const char * trigger0, Int_t dword);
     Int_t Mask(Int_t num0, Int_t dword);
-    Int_t Index(TString trigger0);
-    TString Name(Int_t num0);
+    Int_t Index(const char * trigger0);
+    const char * Name(Int_t num0);
     void PrintTrigIds();
-    Int_t WhichBranch(TString name0);
-    Bool_t IsTakeall(TString name0);
-    Bool_t Fired(TString trg);
+    Int_t WhichBranch(const char * name0);
+    Bool_t IsTakeall(const char * name0);
+    Bool_t Fired(const char * trg);
     Bool_t Fired(Int_t num1);
     void PrintVars();
-    Int_t GetAllMaskDSM();
 
     Int_t N; // number of FMS triggers
 
     //------------------------
     // EVENT VARIABLES
     Int_t L2sum[2]; // it's signed in Outputfiles for some reason
-    Int_t runnum; // MANY METHODS HERE USE THIS RUNNUM; MAKE SURE THAT IT'S ALWAYS SET!
+    Int_t runnum;
     //------------------------
     TCUbits * tcu;
     
@@ -51,7 +50,7 @@ class LevelTwo : public TObject
   protected:
     Environ * env;
     TTree * id_tr;
-    TString trig;
+    char trig[64];
 
     // MAPS:
     // here trigger idx refers to the enumerator in the namespace
@@ -66,7 +65,6 @@ class LevelTwo : public TObject
     //                              key = trigger index, value = daq trigger id
     std::map<Int_t, std::map<Int_t,Long_t> > mask_map;
 
-    std::map<Int_t, Int_t> allmask_lastdsm;
     std::map<std::string, Bool_t> takeall; // trigger name --> is takeall
 
     ClassDef(LevelTwo,1);

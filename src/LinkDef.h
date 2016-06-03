@@ -10,7 +10,6 @@
 #pragma link C++ class EventClass+;
 #pragma link C++ class TCUbits+;
 #pragma link C++ class RPscint+;
-#pragma link C++ class TriggerBoolean+;
 #pragma link C++ class BBCtiles+;
 
 #endif
