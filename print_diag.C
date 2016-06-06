@@ -1,12 +1,14 @@
-// prints PDFs from diagset/all.root
+// prints PDFs from diagset/setdep.root
 
 TObjArray * arr;
 
 void print_diag() {
-  TString filename = "diagset/all.root";
+  TString filename = "diagset/setdep.root";
   TFile * infile = new TFile(filename.Data(),"READ");
 
   gROOT->ProcessLine(".! rm -rv pdf_kincorr");
+  gStyle->SetOptStat(0);
+  gStyle->SetOptFit(1);
 
   //TIter class_it,plot_it,trig_it;
   TIter class_it(gDirectory->GetListOfKeys());

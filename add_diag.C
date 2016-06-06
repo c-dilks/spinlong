@@ -74,6 +74,43 @@ void add_diag() {
       NPLOTS_tmp++;
     };
   };
+  const Int_t NPLOTS = NPLOTS_tmp;
+
+
+  // count number of types of rdists
+  diag_file[0]->cd();
+  TString rdist_types[64]; // assume max number of RTYPES
+  Int_t rdist_types_cnt=0;
+  TString rdist_type;
+  TDirectory * rdir = (TDirectory*)diag_file[0]->Get("rdists");
+  rdir->cd();
+  TString cls_tmp;
+  Int_t int_tmp1,int_tmp2;
+  char typ_tmp[32];
+  char cls_tmp1[32];
+  char cls_tmp2[32];
+  in_one=false;
+  TIter nt1(rdir->GetListOfKeys());
+  Int_t NRTYPES_tmp=0;
+  while(rdkey=(TKey*)nt1()) {
+    cls_tmp = Form("%s",rdkey->GetName());
+    cls_tmp = cls_tmp.ReplaceAll("rdist_arr_","");
+    cls_tmp = cls_tmp.ReplaceAll("_"," ");
+    sscanf(cls_tmp.Data(),"%s %s %d",cls_tmp1,typ_tmp,&int_tmp1);
+    rdist_type = Form("%s",typ_tmp);
+    rdist_types[rdist_types_cnt] = rdist_type;
+    rdist_types_cnt++;
+    //printf("%s -- %s -- %s %s %d\n",rdkey->GetName(),cls_tmp.Data(),cls_tmp1,typ_tmp,int_tmp1);
+    if(!in_one) {
+      strcpy(cls_tmp2,cls_tmp1);
+      int_tmp2 = int_tmp1;
+      in_one=true;
+    }
+    else if(strcmp(cls_tmp1,cls_tmp2) || int_tmp1!=int_tmp2) break;
+    NRTYPES_tmp++;
+  };
+  diag_file[0]->cd();
+  const Int_t NRTYPES = NRTYPES_tmp;
 
 
   // count number of bins in kinematic-dependent massdistributions
@@ -91,14 +128,25 @@ void add_diag() {
       
 
   // other constants
-  const Int_t NPLOTS = NPLOTS_tmp;
   Int_t NTRIGS_tmp = LT->N;
   const Int_t NTRIGS = NTRIGS_tmp;
-  printf("NCLASSES=%d  NPLOTS=%d  NTRIGS=%d  NSETS=%d  NMASSES=%d\n",
-    NCLASSES,NPLOTS,NTRIGS,NSETS,NMASSES);
+  printf("NCLASSES=%d  NPLOTS=%d  NTRIGS=%d  NSETS=%d  NMASSES=%d  NRTYPES=%d\n",
+    NCLASSES,NPLOTS,NTRIGS,NSETS,NMASSES,NRTYPES);
 
   /////////////////////////////////////
   
+
+
+  // define trigger thresholds tree
+  TFile * outfile = new TFile("diagset/setdep.root","RECREATE");
+  TTree * threshtr = new TTree("threshtr","threshtr");
+  Int_t th_runnum,th_index,th_class,th_trig;
+  Float_t th_ptthresh;
+  threshtr->Branch("runnum",&th_runnum,"runnum/I");
+  threshtr->Branch("index",&th_index,"index/I");
+  threshtr->Branch("class",&th_class,"class/I");
+  threshtr->Branch("trig",&th_trig,"trig/I");
+  threshtr->Branch("ptthresh",&th_ptthresh,"ptthresh/F");
 
 
   // define object arrays
@@ -133,6 +181,24 @@ void add_diag() {
   TDirectory * chdir;
   TObjArray * mix_arr[NCLASSES];
   TString mix_arr_name[NCLASSES];
+  char rclass[32];
+  char rtype[32];
+  Int_t rint,rint_tmp;
+  Int_t nruns_in_this_set[NSETS];
+  for(int ss=0; ss<NSETS; ss++) nruns_in_this_set[ss]=0;
+  rint_tmp = -1;
+  char rtrig[32];
+  const Int_t MAX_NRUNS = 50; // max runs in single runset
+  TH1D * rdist[NCLASSES][NRTYPES][MAX_NRUNS][NTRIGS][NSETS];
+  TString keyname_tmp;
+  TObjArray * rarr[NCLASSES][NRTYPES][MAX_NRUNS][NSETS];
+  TObjArray * new_rarr[NCLASSES][NRTYPES][NTRIGS];
+  char new_rarr_name[NCLASSES][NRTYPES][NTRIGS][256];
+  Int_t rc,rtp,rtg;
+  Double_t rmean,rrms;
+  char chtmp[4][32];
+  TString chtmpstr;
+  Int_t runnum;
 
 
   
@@ -140,8 +206,8 @@ void add_diag() {
   // DIAGSET FILE LOOP
   ////////////////////////////////
   
-  for(int s=0; s<5; s++) {
-  //for(int s=0; s<NSETS; s++) {
+  //for(int s=0; s<5; s++) {
+  for(int s=0; s<NSETS; s++) {
     //printf("\n");
     printf("processing set %s\n",setname[s]);
 
@@ -186,6 +252,71 @@ void add_diag() {
         };
         diag_file[s]->cd();
       }
+
+
+      // rdists sector
+      else if(!strcmp(keyname,"rdists")) {
+        chdir = (TDirectory*)key->ReadObj();
+        chdir->cd();
+        TIter rnt(chdir->GetListOfKeys());
+        while(rkey=(TKey*)rnt()) {
+          keyname_tmp = Form("%s",rkey->GetName());
+          keyname_tmp = keyname_tmp.ReplaceAll("rdist_arr_","");
+          keyname_tmp = keyname_tmp.ReplaceAll("_"," ");
+          sscanf(keyname_tmp.Data(),"%s %s %d",rclass,rtype,&rint);
+
+          if(rint > nruns_in_this_set[s]) nruns_in_this_set[s] = rint;
+
+          rc = ev->Idx(rclass);
+          for(int qq=0; qq<NRTYPES; qq++) {
+            if(!strcmp(rtype,rdist_types[qq].Data())) {
+              rtp = qq;
+              break;
+            };
+          };
+
+          rarr[rc][rtp][rint][s] = (TObjArray*) rkey->ReadObj();
+
+
+          for(int ic=0; ic<rarr[rc][rtp][rint][s]->GetEntries(); ic++) {
+            sscanf(((TH1D*)(rarr[rc][rtp][rint][s])->At(ic))->GetName(),"%[^_]",rtrig);
+            rtg = LT->Index(TString(rtrig));
+            rdist[rc][rtp][rint][rtg][s] = (TH1D*)(rarr[rc][rtp][rint][s]->At(ic));
+
+            // fit pt rdist
+            if(!strcmp("pt",rdist_types[rtp].Data())) {
+              if(rdist[rc][rtp][rint][rtg][s]->GetEntries()>0) {
+                rmean = rdist[rc][rtp][rint][rtg][s]->GetMean();
+                rrms = rdist[rc][rtp][rint][rtg][s]->GetRMS();
+                rdist[rc][rtp][rint][rtg][s]->Fit("gaus","Q","",rmean-rrms,rmean+rrms);
+                chtmpstr = Form("%s",rdist[rc][rtp][rint][rtg][s]->GetName());
+                chtmpstr = chtmpstr.ReplaceAll("_"," ");
+                sscanf(chtmpstr.Data(),"%s %s %s %s %d",chtmp[0],chtmp[1],chtmp[2],chtmp[3],&runnum);
+
+                th_runnum = runnum;
+                th_index = 0; // for now, to be changed later
+                th_class = rc;
+                th_trig = rtg;
+                if(rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus")!=NULL) {
+                  th_ptthresh = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus")->GetParameter(1);
+                  threshtr->Fill();
+                };
+              };
+            };
+
+
+
+
+            if(s==0 && rint==0) { 
+              new_rarr[rc][rtp][rtg] = new TObjArray();
+              sprintf(new_rarr_name[rc][rtp][rtg],"%s_%s_rdist_%s",rtrig,rclass,rdist_types[rtp].Data());
+            };
+
+            new_rarr[rc][rtp][rtg]->AddLast(rdist[rc][rtp][rint][rtg][s]);
+          };
+        };
+      }
+
 
 
       // generic TObjArrays sector (for kinematic correlations plots and mass dists)
@@ -262,9 +393,9 @@ void add_diag() {
   };
 
 
-  TFile * outfile = new TFile("diagset/all.root","RECREATE");
 
   // write trig_dist
+  outfile->cd();
   trig_dist_arr->Write("trig_dist_arr",TObject::kSingleKey);
 
   // write overlap_matrices
@@ -282,11 +413,14 @@ void add_diag() {
   outfile->cd();
 
 
+
   // build directory tree and store Tobjarrays of kinematic correlations plots
   char classdir_n[NCLASSES][128];
   char plotdir_n[NCLASSES][NPLOTS][128];
   TDirectory * classdir[NCLASSES];
   TDirectory * plotdir[NCLASSES][NPLOTS];
+  TDirectory * rtypedir;
+  char rtypedir_name[256];
   char new_array_name[NCLASSES][NPLOTS][NTRIGS][256];
   char pdfname[1024];
   char pdfnamel[1024];
@@ -298,6 +432,19 @@ void add_diag() {
     sprintf(classdir_n[c],"%s",classname[c][0][0]);
     classdir[c] = outfile->mkdir(classdir_n[c]);
     classdir[c]->cd();
+
+    // first write rdists
+    for(int p=0; p<NRTYPES; p++) {
+      sprintf(rtypedir_name,"%s_rdist_%s",classname[c][0][0],rdist_types[p].Data());
+      rtypedir = classdir[c]->mkdir(rtypedir_name);
+      rtypedir->cd();
+      for(int t=0; t<NTRIGS; t++) {
+        new_rarr[c][p][t]->Write(new_rarr_name[c][p][t],TObject::kSingleKey);
+      };
+      classdir[c]->cd();
+    };
+
+
 
     for(int p=0; p<NPLOTS; p++ ) {
       sprintf(plotdir_n[c][p],"%s_%s",classdir_n[c],plotname[c][p][0]);
@@ -336,4 +483,6 @@ void add_diag() {
     };
   };
   outfile->cd();
+
+  threshtr->Write();
 };
