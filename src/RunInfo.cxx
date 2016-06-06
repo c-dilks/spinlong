@@ -189,6 +189,7 @@ Int_t RunInfo::GetFill(Int_t runnum0)
 }
 
 
+// equal to index - 1
 Int_t RunInfo::HashRun(Int_t runnum0)
 {
   // linear hashing

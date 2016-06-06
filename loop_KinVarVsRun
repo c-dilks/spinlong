@@ -1,0 +1,17 @@
+#!/bin/bash
+# executes KinVarVsRun for all kinematic variables simultaneously
+
+root -b -q ListTriggers.C | grep trigger | awk '{print $2}' > trigz
+
+while read trigger; do
+  echo $trigger
+
+  root -b -q KinVarVsRun.C'("Eta","'${trigger}'")' &
+  root -b -q KinVarVsRun.C'("Phi","'${trigger}'")' &
+  root -b -q KinVarVsRun.C'("Pt","'${trigger}'")' &
+  root -b -q KinVarVsRun.C'("E12","'${trigger}'")' 
+
+done < trigz
+
+rm trigz
+

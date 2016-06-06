@@ -142,11 +142,15 @@ void add_diag() {
   TTree * threshtr = new TTree("threshtr","threshtr");
   Int_t th_runnum,th_index,th_class,th_trig;
   Float_t th_ptthresh;
+  Float_t th_ptthresh_err;
   threshtr->Branch("runnum",&th_runnum,"runnum/I");
   threshtr->Branch("index",&th_index,"index/I");
   threshtr->Branch("class",&th_class,"class/I");
   threshtr->Branch("trig",&th_trig,"trig/I");
   threshtr->Branch("ptthresh",&th_ptthresh,"ptthresh/F");
+  threshtr->Branch("ptthresh_err",&th_ptthresh_err,"ptthresh_err/F");
+  TF1 * curr_fit;
+
 
 
   // define object arrays
@@ -294,11 +298,13 @@ void add_diag() {
                 sscanf(chtmpstr.Data(),"%s %s %s %s %d",chtmp[0],chtmp[1],chtmp[2],chtmp[3],&runnum);
 
                 th_runnum = runnum;
-                th_index = 0; // for now, to be changed later
+                th_index = RD->HashRun(runnum)+1;
                 th_class = rc;
                 th_trig = rtg;
-                if(rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus")!=NULL) {
-                  th_ptthresh = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus")->GetParameter(1);
+                curr_fit = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus");
+                if(curr_fit!=NULL) {
+                  th_ptthresh = curr_fit->GetParameter(1);
+                  th_ptthresh_err = curr_fit->GetParError(1);
                   threshtr->Fill();
                 };
               };
