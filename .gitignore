@@ -32,3 +32,4 @@ wdist_pdfs/*
 bbc_evdi*.pdf
 hot_chan.pdf
 pi0_bx_dist.pdf
+pdf_kincorr/*

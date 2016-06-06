@@ -96,19 +96,27 @@ void EventClass::SetKinematics(Int_t runnum_,
 // returns event class index
 Int_t EventClass::Idx(char * name)
 {
-  return class_idx.at(std::string(name));
+  Int_t retval;
+  try { retval = class_idx.at(std::string(name)); }
+  catch(const std::out_of_range& e) {
+    retval=-1; 
+    //fprintf(stderr,"EventClass::Idx out of range\n");
+  };
+  return retval;
 };
 
 // returns event class name, given index
 char * EventClass::Name(Int_t idx)
 {
-  return class_name.at(idx);
+  if(idx>=0 && idx<N) return class_name.at(idx);
+  else return "";
 };
 
 // returns event class title, given index
 char * EventClass::Title(Int_t idx)
 {
-  return class_title.at(idx);
+  if(idx>=0 && idx<N) return class_title.at(idx);
+  else return "";
 };
 
 // returns event class title, given event class name

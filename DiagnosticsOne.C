@@ -8,9 +8,9 @@ void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
   // if enableOverlap=true, fill overlap matrices; may cause slow-down
   const Bool_t enableOverlap = true;
 
-  const Int_t NBINS=400; // NUMBER OF BINS (default 400)
+  const Int_t NBINS=75; // NUMBER OF BINS (default 400)
   const Int_t NBINS_RDIST=100; // number of bins for variable vs. run index plots (default 100)
-  const Int_t MAXRUNS=20; // arbitrary max number of runs in redset file 
+  const Int_t MAXRUNS=50; // arbitrary max number of runs in redset file 
 
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <map>
 #include "TSystem.h"
 #include "TObject.h"

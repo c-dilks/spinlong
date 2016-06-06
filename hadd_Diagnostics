@@ -2,5 +2,5 @@
 
 pushd diagset
 touch all.root; rm all.root
-hadd all.root diag_N.*.root
+hadd all.root diag*.root
 popd
