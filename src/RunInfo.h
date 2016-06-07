@@ -21,6 +21,7 @@ class RunInfo : public TObject
     RunInfo();
     Int_t GetFill(Int_t runnum0);
     Int_t HashRun(Int_t runnum0);
+    Int_t Index(Int_t runnum0);
     Float_t Rellum(Int_t runnum0, Int_t rellumi, char * detector);
     Float_t RellumErr(Int_t runnum0, Int_t rellumi, char * detector);
     Bool_t RellumConsistent(Int_t runnum0); // true if rellumi consistent (defined for R3)

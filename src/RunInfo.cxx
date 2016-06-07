@@ -202,6 +202,13 @@ Int_t RunInfo::HashRun(Int_t runnum0)
 };
 
 
+// returns run index; if hashing fails, returns -1
+Int_t RunInfo::Index(Int_t runnum0) {
+  Int_t retval = HashRun(runnum0);
+  return (retval>=0) ? retval+1:-1;
+};
+
+
 Float_t RunInfo::Rellum(Int_t runnum0, Int_t rellumi, char * detector)
 {
   Int_t index = HashRun(runnum0);

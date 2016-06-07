@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for file in kinvarset/*.root; do
+  echo $file
+  root -b -q DrawKinvarPlot.C'("'${file}'","pi0")'
+done

@@ -298,7 +298,7 @@ void add_diag() {
                 sscanf(chtmpstr.Data(),"%s %s %s %s %d",chtmp[0],chtmp[1],chtmp[2],chtmp[3],&runnum);
 
                 th_runnum = runnum;
-                th_index = RD->HashRun(runnum)+1;
+                th_index = RD->Index(runnum);
                 th_class = rc;
                 th_trig = rtg;
                 curr_fit = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus");

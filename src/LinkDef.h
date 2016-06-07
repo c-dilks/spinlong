@@ -11,5 +11,6 @@
 #pragma link C++ class TCUbits+;
 #pragma link C++ class RPscint+;
 #pragma link C++ class BBCtiles+;
+#pragma link C++ class KinBounds+;
 
 #endif

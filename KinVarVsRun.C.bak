@@ -9,7 +9,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   if(!(RD->env->success)) return;
   LevelTwo * T = new LevelTwo(RD->env);
   EventClass * ev = new EventClass(RD->env);
-  KinBounds * kb = new KinBounds(RD->env,T,ev);
 
 
   const Int_t N_BINS=100;
@@ -40,8 +39,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   Float_t bin_low,bin_high;
   Float_t * kinvar;
 
-  Bool_t use_threshold = false;
-
   if(!strcmp(var,"Eta"))
   {
     bin_low = RD->env->EtaLow;
@@ -59,7 +56,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
     bin_low = RD->env->PtLow;
     bin_high = RD->env->PtHigh;
     kinvar = &Pt;
-    use_threshold = true;
   }
   else if(!strcmp(var,"E12"))
   {
@@ -69,27 +65,15 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   }
 
   Int_t count=0;
-  const Int_t MAX_RUNS = 2000;
-
-  Int_t run_idx[MAX_RUNS]; // "count" --> run index
-  Int_t max_idx=0; // max run index
   Int_t runnum_tmp=0;
 
-  TH1D * h[N_CLASS][MAX_RUNS]; // assumes max number of runs
-  char h_name[N_CLASS][MAX_RUNS][32];
-
-  Float_t threshold[N_CLASS][MAX_RUNS];
-  Int_t trig_index = T->Index(TString(chosen_trig));
+  TH1D * h[N_CLASS][2000]; // assumes max number of runs
+  char h_name[N_CLASS][2000][32];
 
 
-  for(int c=0; c<N_CLASS; c++) {
-    for(int r=0; r<MAX_RUNS; r++) {
-      threshold[c][r] = -1;
-    };
-  };
 
 
-  //for(Int_t i=0; i<8000000; i++)
+  //for(Int_t i=0; i<5000000; i++)
   for(Int_t i=0; i<tc->GetEntries(); i++)
   {
     tc->GetEntry(i);
@@ -106,14 +90,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
       };
       printf("%s %d %d\n",var,count,runnum);
       runnum_tmp = runnum;
-      run_idx[count] = RD->Index(runnum);
-      max_idx = (run_idx[count]>max_idx) ? run_idx[count]:max_idx;
-      if(use_threshold) {
-        for(Int_t c=0; c<N_CLASS; c++) {
-          threshold[c][run_idx[count]] = kb->PtThreshLow(run_idx[count],c,trig_index);
-          if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
-        };
-      };
     };
     for(Int_t c=0; c<N_CLASS; c++)
     {
@@ -129,37 +105,20 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   char g_n[N_CLASS][64];
   char g_t[N_CLASS][64];
   Int_t g_c[N_CLASS];
-  TGraphErrors * gt[N_CLASS];
-  char gt_n[N_CLASS][64];
-  char gt_t[N_CLASS][64];
-  Int_t gt_c[N_CLASS];
   Float_t mean,rms;
   for(Int_t c=0; c<N_CLASS; c++)
   {
     sprintf(h2_t[c],"%s %s vs. run index",ev->Title(c),var);
     sprintf(h2_n[c],"h2_%s",ev->Name(c));
-    //h2[c] = new TH2D(h2_n[c],h2_t[c],count+1,0,count+1,N_BINS,bin_low,bin_high);
-    h2[c] = new TH2D(h2_n[c],h2_t[c],max_idx+1,0,max_idx+1,N_BINS,bin_low,bin_high);
-
+    h2[c] = new TH2D(h2_n[c],h2_t[c],count+1,0,count+1,N_BINS,bin_low,bin_high);
     sprintf(g_t[c],"%s average %s vs. run index",ev->Title(c),var);
     sprintf(g_n[c],"g_%s",ev->Name(c));
     g[c] = new TGraphErrors();
     g_c[c] = 0;
-
     g[c]->SetName(g_n[c]);
     g[c]->SetTitle(g_t[c]);
     g[c]->SetMarkerStyle(kFullCircle);
     g[c]->SetMarkerColor(kViolet);
-
-    sprintf(gt_t[c],"%s %s threshold vs. run index",ev->Title(c),var);
-    sprintf(gt_n[c],"gt_%s",ev->Name(c));
-    gt[c] = new TGraphErrors();
-    gt_c[c] = 0;
-
-    gt[c]->SetName(gt_n[c]);
-    gt[c]->SetTitle(gt_t[c]);
-    gt[c]->SetMarkerStyle(kFullCircle);
-    gt[c]->SetMarkerColor(kAzure);
 
     Float_t binpos;
     Int_t binn;
@@ -174,22 +133,15 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
         }
         else { mean=10000; rms=10000; };
         if(mean<10000) {
-          g[c]->SetPoint(g_c[c],run_idx[k],mean);
+          g[c]->SetPoint(g_c[c],k,mean);
           g[c]->SetPointError(g_c[c],0,rms);
           g_c[c]++;
-        };
-
-        if(threshold[c][run_idx[k]]>=0) {
-          gt[c]->SetPoint(gt_c[c],run_idx[k],threshold[c][run_idx[k]]);
-          gt[c]->SetPointError(gt_c[c],0,0);
-          gt_c[c]++;
         };
 
         for(Int_t b=0; b<h[c][k]->GetNbinsX(); b++)
         {
           binpos = h[c][k]->GetBinCenter(b);
-          //binn = h2[c]->FindBin(k,binpos);
-          binn = h2[c]->FindBin(run_idx[k],binpos);
+          binn = h2[c]->FindBin(k,binpos);
           h2[c]->SetBinContent(binn,h[c][k]->GetBinContent(b));
         };
       };
@@ -212,7 +164,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   canv->Write();
 
   for(Int_t c=0; c<N_CLASS; c++) g[c]->Write();
-  if(use_threshold) { for(Int_t c=0; c<N_CLASS; c++) gt[c]->Write(); };
 
 
 
