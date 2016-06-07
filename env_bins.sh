@@ -27,10 +27,10 @@ export ETA_BINS=1
 export ETA_DIV_0=2.650000
 export ETA_DIV_1=3.900000
 
-export PT_LOW=2.000000
+export PT_LOW=0.000000
 export PT_HIGH=10.000000
 export PT_BINS=3
-export PT_DIV_0=2.000000
+export PT_DIV_0=0.000000
 export PT_DIV_1=5.000000
 export PT_DIV_2=6.500000
 export PT_DIV_3=10.000000

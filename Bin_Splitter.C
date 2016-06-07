@@ -92,6 +92,7 @@ void Bin_Splitter(Int_t year=12,
     case kLarge: pt_low=3.25; break;
     case kSmall: pt_low=2.2; break;
   };
+  pt_low = 0; // OVERRIDE FOR DIAGNOSTICS PLOTS----------------------------------------------------------------------------------
   Double_t pt_high=10.0; // pi0 reconstruction is unreliable for pT>15
   Int_t pt_bins=0;
 

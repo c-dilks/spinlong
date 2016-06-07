@@ -89,8 +89,8 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   };
 
 
-  //for(Int_t i=0; i<8000000; i++)
-  for(Int_t i=0; i<tc->GetEntries(); i++)
+  for(Int_t i=0; i<8000000; i++)
+  //for(Int_t i=0; i<tc->GetEntries(); i++)
   {
     tc->GetEntry(i);
     T->runnum = runnum;
@@ -111,7 +111,7 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
       if(use_threshold) {
         for(Int_t c=0; c<N_CLASS; c++) {
           threshold[c][run_idx[count]] = kb->PtThreshLow(run_idx[count],c,trig_index);
-          if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
+          //if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
         };
       };
     };
@@ -213,9 +213,5 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
 
   for(Int_t c=0; c<N_CLASS; c++) g[c]->Write();
   if(use_threshold) { for(Int_t c=0; c<N_CLASS; c++) gt[c]->Write(); };
-
-
-
-
 };
 
