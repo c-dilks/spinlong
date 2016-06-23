@@ -26,7 +26,7 @@ void TestLevelTwo(TString setn="080Ba") {
 
   // event loop
   Int_t ENT = tr->GetEntries();
-  ENT = 5;
+  ENT = 100;
   for(int i=0; i<ENT; i++) {
     tr->GetEntry(i);
     if(ClIndex==0) {

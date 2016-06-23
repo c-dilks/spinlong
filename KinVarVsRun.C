@@ -89,8 +89,8 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   };
 
 
-  for(Int_t i=0; i<8000000; i++)
-  //for(Int_t i=0; i<tc->GetEntries(); i++)
+  //for(Int_t i=0; i<8000000; i++)
+  for(Int_t i=0; i<tc->GetEntries(); i++)
   {
     tc->GetEntry(i);
     T->runnum = runnum;

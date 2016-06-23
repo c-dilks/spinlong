@@ -215,6 +215,7 @@ TString LevelTwo::Name(Int_t num0)
 // print
 void LevelTwo::PrintTrigIds() {
   printf("LevelTwo Printout for run %d\n",runnum);
+  printf("\n");
   printf("------------------------------------------------------------------------\n");
   printf("idx       name  L2sum[1] L2sum[0]    DSM  chan bit  which_branch takeall\n");
   TString which_branch_name[3];
@@ -232,16 +233,18 @@ void LevelTwo::PrintTrigIds() {
       (tcu->WhichDSM(trig)).data(),
       tcu->WhichTCUchan(trig,tcu->WhichDSM(trig)),
       tcu->WhichBit(trig),
-      which_branch_name[WhichBranch(trig)].Data(),
+      nn==kAll?"OR":which_branch_name[WhichBranch(trig)].Data(),
       IsTakeall(trig)?"yes":"no"
     );
   };
-  printf(" ---- allmask_lastdsm=%s.%s.%s.%s\n",
+  printf("\n");
+  printf(" ---- allmask (lastdsm): %s.%s.%s.%s\n",
       std::bitset<4>(GetAllMaskDSM()>>12).to_string().c_str(),
       std::bitset<4>(GetAllMaskDSM()>>8).to_string().c_str(),
       std::bitset<4>(GetAllMaskDSM()>>4).to_string().c_str(),
       std::bitset<4>(GetAllMaskDSM()).to_string().c_str()
   );
+  printf(" ---- allmask (L2sum[0]): %8x\n",Mask(kAll,0));
 };
 
 

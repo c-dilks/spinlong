@@ -45,9 +45,12 @@ void DrawKinvarPlot(TString filename="kinvarset/All_Pt_vs_run.root",
   Float_t xmin = h->GetXaxis()->GetXmin();
   Float_t xmax = h->GetXaxis()->GetXmax();
   g->GetXaxis()->SetRangeUser(xmin,xmax);
+  /*
   g->Draw("A3");
   g->Draw("PLX");
+  */
+  g->Draw("APLX");
   
-  TString outname = filename.ReplaceAll(".root",".png");
+  TString outname = filename.ReplaceAll("root","png");
   c->Print(outname.Data(),"png");
 };
