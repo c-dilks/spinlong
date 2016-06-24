@@ -35,10 +35,10 @@ export PT_DIV_1=5.000000
 export PT_DIV_2=6.500000
 export PT_DIV_3=10.000000
 
-export EN_LOW=30.000000
+export EN_LOW=0.000000
 export EN_HIGH=100.000000
 export EN_BINS=1
-export EN_DIV_0=30.000000
+export EN_DIV_0=0.000000
 export EN_DIV_1=100.000000
 
 export WHICH_ETA_CUT=0

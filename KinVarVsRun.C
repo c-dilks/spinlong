@@ -9,7 +9,7 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   if(!(RD->env->success)) return;
   LevelTwo * T = new LevelTwo(RD->env);
   EventClass * ev = new EventClass(RD->env);
-  KinBounds * kb = new KinBounds(RD->env,T,ev);
+  KinBounds * KB = new KinBounds(RD->env,T,ev);
 
 
   const Int_t N_BINS=100;
@@ -66,12 +66,26 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
     bin_low = RD->env->EnLow;
     bin_high = RD->env->EnHigh;
     kinvar = &E12;
+    use_threshold = true;
+  }
+  else if(!strcmp(var,"M12"))
+  {
+    bin_low = 0;
+    bin_high = 1;
+    kinvar = &M12;
+  }
+  else if(!strcmp(var,"Z"))
+  {
+    bin_low = 0;
+    bin_high = 1;
+    kinvar = &Z;
   }
 
   Int_t count=0;
   const Int_t MAX_RUNS = 2000;
 
   Int_t run_idx[MAX_RUNS]; // "count" --> run index
+  Int_t runnum_arr[MAX_RUNS]; // "count" --> run number
   Int_t max_idx=0; // max run index
   Int_t runnum_tmp=0;
 
@@ -88,37 +102,49 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
     };
   };
 
+  Bool_t exclude_run;
 
-  //for(Int_t i=0; i<8000000; i++)
-  for(Int_t i=0; i<tc->GetEntries(); i++)
-  {
+  //for(Int_t i=0; i<(tc->GetEntries())/100; i++) {
+  for(Int_t i=0; i<(tc->GetEntries())/10; i++) {
+  //for(Int_t i=0; i<tc->GetEntries(); i++) {
     tc->GetEntry(i);
     T->runnum = runnum;
 
-    ev->SetKinematics(runnum,E12,Pt,Eta,Phi,M12,Z,N12,ClIndex);
-    if(runnum!=runnum_tmp)
+    if(RD->RellumConsistent(runnum) && RD->BluePol(runnum)>0 && RD->YellPol(runnum)>0)
     {
-      if(runnum_tmp!=0) count++;
-      for(Int_t c=0; c<N_CLASS; c++)
+      ev->SetKinematics(runnum,E12,Pt,Eta,Phi,M12,Z,N12,ClIndex);
+      if(!(ev->ExcludedRun()))
       {
-        sprintf(h_name[c][count],"h_%d_%s",runnum,ev->Name(c));
-        h[c][count] = new TH1D(h_name[c][count],h_name[c][count],N_BINS,bin_low,bin_high);
-      };
-      printf("%s %d %d\n",var,count,runnum);
-      runnum_tmp = runnum;
-      run_idx[count] = RD->Index(runnum);
-      max_idx = (run_idx[count]>max_idx) ? run_idx[count]:max_idx;
-      if(use_threshold) {
-        for(Int_t c=0; c<N_CLASS; c++) {
-          threshold[c][run_idx[count]] = kb->PtThreshLow(run_idx[count],c,trig_index);
-          //if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
+        if(runnum!=runnum_tmp)
+        {
+          if(runnum_tmp!=0) count++;
+          for(Int_t c=0; c<N_CLASS; c++)
+          {
+            sprintf(h_name[c][count],"h_%d_%s",runnum,ev->Name(c));
+            h[c][count] = new TH1D(h_name[c][count],h_name[c][count],N_BINS,bin_low,bin_high);
+          };
+          printf("%s %d %d\n",var,count,runnum);
+          runnum_tmp = runnum;
+          run_idx[count] = RD->Index(runnum);
+          runnum_arr[count] = runnum;
+          max_idx = (run_idx[count]>max_idx) ? run_idx[count]:max_idx;
+          if(use_threshold) {
+            for(Int_t c=0; c<N_CLASS; c++) {
+              if(!strcmp(var,"Pt"))
+                threshold[c][run_idx[count]] = KB->PtThreshLow(run_idx[count],c,trig_index);
+              else if(!strcmp(var,"E12")) 
+                threshold[c][run_idx[count]] = KB->EnThreshLow(run_idx[count],c,trig_index);
+
+              //if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
+            };
+          };
+        };
+        for(Int_t c=0; c<N_CLASS; c++)
+        {
+          if(ev->Valid(c) && T->Fired(TString(chosen_trig)))
+            h[c][count]->Fill(*kinvar);
         };
       };
-    };
-    for(Int_t c=0; c<N_CLASS; c++)
-    {
-      if(ev->Valid(c) && T->Fired(TString(chosen_trig)))
-        h[c][count]->Fill(*kinvar);
     };
   };
 
@@ -174,13 +200,15 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
         }
         else { mean=10000; rms=10000; };
         if(mean<10000) {
-          g[c]->SetPoint(g_c[c],run_idx[k],mean);
+          g[c]->SetPoint(g_c[c],k,mean);
+          //g[c]->SetPoint(g_c[c],run_idx[k],mean);
           g[c]->SetPointError(g_c[c],0,rms);
           g_c[c]++;
         };
 
         if(threshold[c][run_idx[k]]>=0) {
-          gt[c]->SetPoint(gt_c[c],run_idx[k],threshold[c][run_idx[k]]);
+          gt[c]->SetPoint(gt_c[c],k,threshold[c][run_idx[k]]);
+          //gt[c]->SetPoint(gt_c[c],run_idx[k],threshold[c][run_idx[k]]);
           gt[c]->SetPointError(gt_c[c],0,0);
           gt_c[c]++;
         };
@@ -188,16 +216,32 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
         for(Int_t b=0; b<h[c][k]->GetNbinsX(); b++)
         {
           binpos = h[c][k]->GetBinCenter(b);
-          //binn = h2[c]->FindBin(k,binpos);
-          binn = h2[c]->FindBin(run_idx[k],binpos);
+          binn = h2[c]->FindBin(k,binpos);
+          //binn = h2[c]->FindBin(run_idx[k],binpos);
           h2[c]->SetBinContent(binn,h[c][k]->GetBinContent(b));
+          
+          printf("runnum=%d h[c=%d][k=%d]->GetEntries()=%d\n",
+            runnum_arr[k],c,k,h[c][k]->GetEntries());
         };
       };
     };
   };
 
+  // build tree with kinvar_vs_run's local run index, to be used if you
+  // see something strange in the distributions and want to characterize
+  // which run it is
   TString outfile_n = Form("kinvarset/%s_%s_vs_run.root",chosen_trig,var);
   TFile * outfile = new TFile(outfile_n.Data(),"RECREATE");
+  TTree * runindex_tr = new TTree();
+  Int_t i0,runnum0;
+  runindex_tr->Branch("idx",&i0,"idx/I");
+  runindex_tr->Branch("runnum",&runnum0,"runnum/I");
+  for(Int_t k=0; k<count+1; k++) {
+    i0 = k;
+    runnum0 = runnum_arr[k];
+    runindex_tr->Fill();
+  };
+
 
   TCanvas * canv = new TCanvas("canv","canv",1000,N_CLASS*400);
   gStyle->SetOptStat(0);
@@ -213,5 +257,6 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
 
   for(Int_t c=0; c<N_CLASS; c++) g[c]->Write();
   if(use_threshold) { for(Int_t c=0; c<N_CLASS; c++) gt[c]->Write(); };
+  runindex_tr->Write("runindex_tr");
 };
 

@@ -12,12 +12,13 @@
 #include "TTree.h"
 
 #include "Environ.h"
+#include "KinBounds.h"
 
 
 class EventClass : public TObject
 {
   public:
-    EventClass(Environ * env0);
+    EventClass(Environ * env0, Bool_t DoNotInitKinBounds=false);
     void SetKinematics(Int_t runnum_,
                        Float_t E12_,
                        Float_t Pt_,
@@ -31,11 +32,12 @@ class EventClass : public TObject
     char * Name(Int_t idx);
     char * Title(Int_t idx);
     char * Title(char * name);
-    Bool_t Valid(Int_t idx); // returns true if cuts pass
+    Bool_t Valid(Int_t idx,Int_t trig_index=-1); // returns true if cuts pass
     Bool_t ValidWithoutMcut(Int_t idx); // Valid(), but don't cut on mass
     Bool_t ValidWithoutZcut(Int_t idx); // Valid(), but don't cut on Z
     Bool_t CheckMass(Float_t M12_);
     Bool_t FiducialGeom(Float_t Eta_,Float_t Phi_, Float_t Cd);
+    Bool_t ExcludedRun(); // true if excluded
 
     Int_t N;
     Int_t runnum,ClIndex;
@@ -52,6 +54,7 @@ class EventClass : public TObject
     Bool_t exclude_run;
 
     Environ * env;
+    KinBounds * KB;
     TTree * mass_tr;
     Float_t kbinL,kbinH,massL,massM,massH;
     TTree * exclude_tr;

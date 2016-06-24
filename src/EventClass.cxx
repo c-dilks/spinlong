@@ -24,7 +24,9 @@ namespace
 };
 
 // constructor
-EventClass::EventClass(Environ * env0)
+// DoNotInitKinBounds will not initialise KinBounds; this is only used in 
+// add_diag.C, because add_diag.C produces threshtr, a dependency of KinBounds
+EventClass::EventClass(Environ * env0, Bool_t DoNotInitKinBounds)
 {
   N = N_CLASS;
 
@@ -67,6 +69,9 @@ EventClass::EventClass(Environ * env0)
 
   runnum_tmp=0;
   exclude_run=false;
+
+  if(!DoNotInitKinBounds) 
+    KB = new KinBounds(env);
 };
 
 
@@ -91,6 +96,8 @@ void EventClass::SetKinematics(Int_t runnum_,
   N12 = N12_;
   ClIndex = ClIndex_;
 };
+
+
 
 
 // returns event class index
@@ -130,27 +137,45 @@ char * EventClass::Title(char * name)
 //   EVENT CLASS CUTS   //
 //////////////////////////
 // returns true if the event passes the cuts
-Bool_t EventClass::Valid(Int_t idx)
+// -- if trig_index>=0, we check 
+//    tighter cuts on kinematics via KinBounds; this is useful
+//    for selecting events for A_LL
+// -- if trig_index<0, we just check kinematics are in ranges specified
+//    in Bin_Splitter.C; this is
+//    useful for KinVarVsRun.C and DiagnosticsOne.C, where we'd like
+//    to see the full distribution
+// -- see doc_diagram.pdf for a diagram of the flow of information through
+//    all of these classes
+//
+Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
 {
   // check if on exclusion list
   if(runnum!=runnum_tmp)
   {
     runnum_tmp = runnum;
+    exclude_run = ExcludedRun();
+
+    /*
     exclude_run=false;
     for(Int_t e=0; e<exclude_tr->GetEntries(); e++)
     {
       exclude_tr->GetEntry(e);
       if(runnum==exc_run) exclude_run=true;
     };
+    */
   };
   if(exclude_run) return false;
+
+
+  Bool_t validity = false;
+
 
   // single photon cuts
   if(idx==kSph)
   {
     if( fabs(N12-1)<0.1 /*&&*/
         /*E12>10 &&*/
-        /*Pt>1*/ ) return true;
+        /*Pt>1*/ ) validity = true;
   }
 
   // pi0 cuts
@@ -161,7 +186,7 @@ Bool_t EventClass::Valid(Int_t idx)
         Z<0.8 &&
         CheckMass(M12) /*&&*/
         /*E12>10 &&*/
-        /*Pt>1*/ ) return true;
+        /*Pt>1*/ ) validity = true;
   }
 
   // three or more photons cuts
@@ -170,7 +195,7 @@ Bool_t EventClass::Valid(Int_t idx)
     if( N12>2 &&
         M12>0.7 /*&& */
         /*E12>10 &&*/
-        /*Pt>1*/ ) return true;
+        /*Pt>1*/ ) validity = true;
   }
 
   // eta meson cuts
@@ -181,7 +206,7 @@ Bool_t EventClass::Valid(Int_t idx)
         fabs(M12-etm_mass)<0.15 &&
         FiducialGeom(Eta,Phi,1.5) /*&&*/
         /*E12>10 &&*/
-        /*Pt>1*/ ) return true;
+        /*Pt>1*/ ) validity = true;
   }
 
   // j/psi cuts
@@ -194,11 +219,24 @@ Bool_t EventClass::Valid(Int_t idx)
         Eta>3.2 &&
         FiducialGeom(Eta,Phi,1.5) &&
         E12>60 && E12<100 &&
-        Pt>1) return true;
+        Pt>1) validity = true;
   }
   */
 
-  return false;
+
+  // check tighter kinematic cuts (run-by-run, trigger-by-trigger)
+  if(validity) {
+    if(trig_index>=0) {
+      validity=false;
+      if(KB->PtInRange(Pt,runnum,idx,trig_index) &&
+         KB->EnInRange(E12,runnum,idx,trig_index)) {
+        validity = true;
+      };
+    };
+  };
+
+
+  return validity;
 };
 //////////////////////////
 
@@ -270,4 +308,15 @@ Bool_t EventClass::FiducialGeom(Float_t Eta_, Float_t Phi_, Float_t Cd)
   //if(Cd!=0 && Eta_>=2.5 && Eta_<=4) boole = true;
 
   return boole;
+};
+
+
+// returns true if run is on exclusion list
+Bool_t EventClass::ExcludedRun() {
+  for(Int_t e=0; e<exclude_tr->GetEntries(); e++)
+  {
+    exclude_tr->GetEntry(e);
+    if(runnum==exc_run) return true;
+  };
+  return false;
 };

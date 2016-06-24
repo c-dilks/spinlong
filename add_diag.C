@@ -9,7 +9,7 @@ void add_diag() {
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;
   LevelTwo * LT = new LevelTwo(RD->env);
-  EventClass * ev = new EventClass(RD->env);
+  EventClass * ev = new EventClass(RD->env,true); // false means we won't instantiate KinBounds; we don't need it here anyway
 
 
 
@@ -138,17 +138,25 @@ void add_diag() {
 
 
   // define trigger thresholds tree
+  // -- sorry, but this tree has a weird and stupid structure... there is a branch
+  //    called which_thresh which tells you which thresholds to believe; e.g., if you
+  //    want to plot pt threshold vs. run index, you MUST make the cut which_thresh=="pt";
+  //    then plot thresh vs. index
+  //    It was done this way because the tree-filling loops below were written well before
+  //    this tree was even considered, and it's way too difficult to change the loop structure now
   TFile * outfile = new TFile("diagset/setdep.root","RECREATE");
   TTree * threshtr = new TTree("threshtr","threshtr");
   Int_t th_runnum,th_index,th_class,th_trig;
-  Float_t th_ptthresh;
-  Float_t th_ptthresh_err;
+  char which_thresh[32];
+  Float_t thresh;
+  Float_t thresh_err;
   threshtr->Branch("runnum",&th_runnum,"runnum/I");
   threshtr->Branch("index",&th_index,"index/I");
   threshtr->Branch("class",&th_class,"class/I");
   threshtr->Branch("trig",&th_trig,"trig/I");
-  threshtr->Branch("ptthresh",&th_ptthresh,"ptthresh/F");
-  threshtr->Branch("ptthresh_err",&th_ptthresh_err,"ptthresh_err/F");
+  threshtr->Branch("which_thresh",which_thresh,"which_thresh/C");
+  threshtr->Branch("thresh",&thresh,"thresh/F");
+  threshtr->Branch("thresh_err",&thresh_err,"thresh_err/F");
   TF1 * curr_fit;
 
 
@@ -303,8 +311,33 @@ void add_diag() {
                 th_trig = rtg;
                 curr_fit = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus");
                 if(curr_fit!=NULL) {
-                  th_ptthresh = curr_fit->GetParameter(1);
-                  th_ptthresh_err = curr_fit->GetParError(1);
+                  thresh = curr_fit->GetParameter(1);
+                  thresh_err = curr_fit->GetParError(1);
+                  sprintf(which_thresh,"%s","pt");
+                  threshtr->Fill();
+                };
+              };
+            }
+
+            // fit en rdist
+            else if(!strcmp("en",rdist_types[rtp].Data())) {
+              if(rdist[rc][rtp][rint][rtg][s]->GetEntries()>0) {
+                rmean = rdist[rc][rtp][rint][rtg][s]->GetMean();
+                rrms = rdist[rc][rtp][rint][rtg][s]->GetRMS();
+                rdist[rc][rtp][rint][rtg][s]->Fit("gaus","Q","",rmean-rrms,rmean+rrms);
+                chtmpstr = Form("%s",rdist[rc][rtp][rint][rtg][s]->GetName());
+                chtmpstr = chtmpstr.ReplaceAll("_"," ");
+                sscanf(chtmpstr.Data(),"%s %s %s %s %d",chtmp[0],chtmp[1],chtmp[2],chtmp[3],&runnum);
+
+                th_runnum = runnum;
+                th_index = RD->Index(runnum);
+                th_class = rc;
+                th_trig = rtg;
+                curr_fit = rdist[rc][rtp][rint][rtg][s]->GetFunction("gaus");
+                if(curr_fit!=NULL) {
+                  thresh = curr_fit->GetParameter(1);
+                  thresh_err = curr_fit->GetParError(1);
+                  sprintf(which_thresh,"%s","en");
                   threshtr->Fill();
                 };
               };

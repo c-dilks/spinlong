@@ -1,4 +1,4 @@
-void DrawPtThreshes() {
+void DrawThreshes(const char * chosen_thresh="pt") {
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;
@@ -10,11 +10,13 @@ void DrawPtThreshes() {
   TTree * tr = (TTree*) infile->Get("threshtr");
   Int_t index,cls,trg;
   Float_t th,the;
+  char which_thresh[32];
   tr->SetBranchAddress("index",&index);
   tr->SetBranchAddress("class",&cls);
   tr->SetBranchAddress("trig",&trg);
-  tr->SetBranchAddress("ptthresh",&th);
-  tr->SetBranchAddress("ptthresh_err",&the);
+  tr->SetBranchAddress("thresh",&th);
+  tr->SetBranchAddress("thresh_err",&the);
+  tr->SetBranchAddress("which_thresh",which_thresh);
 
   Int_t NCLASSES_tmp = ev->N;
   Int_t NTRIGS_tmp = LT->N;
@@ -22,7 +24,7 @@ void DrawPtThreshes() {
   const Int_t NCLASSES = NCLASSES_tmp;
   const Int_t NTRIGS = NTRIGS_tmp;
 
-  TFile * outfile = new TFile("diagset/ptthresh.root","RECREATE");
+  TFile * outfile = new TFile("diagset/thresh.root","RECREATE");
   TGraphErrors * gr[NCLASSES][NTRIGS];
   TString gr_n[NCLASSES][NTRIGS];
   Int_t nn[NCLASSES][NTRIGS];
@@ -30,7 +32,7 @@ void DrawPtThreshes() {
   for(int c=0; c<NCLASSES; c++) {
     for(int t=0; t<NTRIGS; t++) {
       gr[c][t] = new TGraphErrors();
-      gr_n[c][t] = Form("ptthresh_vs_i__%s__%s",ev->Name(c),(LT->Name(t)).Data());
+      gr_n[c][t] = Form("thresh_vs_i__%s__%s",ev->Name(c),(LT->Name(t)).Data());
       gr[c][t]->SetName(gr_n[c][t].Data());
       gr[c][t]->SetTitle(gr_n[c][t].Data());
       gr[c][t]->SetMarkerStyle(kFullCircle);
@@ -42,9 +44,11 @@ void DrawPtThreshes() {
 
   for(int x=0; x<tr->GetEntries(); x++) {
     tr->GetEntry(x);
-    gr[cls][trg]->SetPoint(nn[cls][trg],index,th);
-    gr[cls][trg]->SetPointError(nn[cls][trg],0,the);
-    nn[cls][trg]++;
+    if(!strcmp(chosen_thresh,which_thresh)) {
+      gr[cls][trg]->SetPoint(nn[cls][trg],index,th);
+      gr[cls][trg]->SetPointError(nn[cls][trg],0,the);
+      nn[cls][trg]++;
+    };
   };
 
   for(int c=0; c<NCLASSES; c++) {

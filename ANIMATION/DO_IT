@@ -1,0 +1,2 @@
+pdftoppm -png pi0_pt_vs_en_All.pdf out
+convert -delay 10 -loop 0 out*.png anim.gif
