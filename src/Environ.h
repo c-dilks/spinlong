@@ -17,6 +17,7 @@ class Environ : public TObject
 
     char SpinDir[512];
     char MassCutType[32];
+    char TriggerType[32];
 
     char MassCutsFile[1024];
     char ExclusionList[1024];
@@ -27,6 +28,7 @@ class Environ : public TObject
     char pol_file[512];
     char output_dir[512];
     char redset_dir[512];
+    char phiset_dir[512];
 
     Int_t which_eta_cut;
 

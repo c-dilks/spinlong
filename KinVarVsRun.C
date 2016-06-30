@@ -9,7 +9,7 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   if(!(RD->env->success)) return;
   LevelTwo * T = new LevelTwo(RD->env);
   EventClass * ev = new EventClass(RD->env);
-  KinBounds * KB = new KinBounds(RD->env,T,ev);
+  KinBounds * KB = new KinBounds(RD->env);
 
 
   const Int_t N_BINS=100;
@@ -104,9 +104,9 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
 
   Bool_t exclude_run;
 
-  //for(Int_t i=0; i<(tc->GetEntries())/100; i++) {
-  for(Int_t i=0; i<(tc->GetEntries())/10; i++) {
-  //for(Int_t i=0; i<tc->GetEntries(); i++) {
+  //for(Int_t i=0; i<(tc->GetEntries())/500; i++) {
+  //for(Int_t i=0; i<(tc->GetEntries())/10; i++) {
+  for(Int_t i=0; i<tc->GetEntries(); i++) {
     tc->GetEntry(i);
     T->runnum = runnum;
 
@@ -141,6 +141,8 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
         };
         for(Int_t c=0; c<N_CLASS; c++)
         {
+          // use "loose" version of EventClass::Valid because we want to use this program
+          // to look at drifting trigger thresholds etc. 
           if(ev->Valid(c) && T->Fired(TString(chosen_trig)))
             h[c][count]->Fill(*kinvar);
         };
@@ -220,8 +222,10 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
           //binn = h2[c]->FindBin(run_idx[k],binpos);
           h2[c]->SetBinContent(binn,h[c][k]->GetBinContent(b));
           
+          /*
           printf("runnum=%d h[c=%d][k=%d]->GetEntries()=%d\n",
             runnum_arr[k],c,k,h[c][k]->GetEntries());
+          */
         };
       };
     };

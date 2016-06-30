@@ -10,10 +10,13 @@ export RTREE_FILE=/home/dilks/h4/root12fms/scalers12/rtree.root
 export POL_FILE=/home/dilks/h4/root12fms/polar12/pol.root
 export OUTPUT_DIR=/home/dilks/h4/Output
 export REDSET_DIR=/home/dilks/h4/redset
+export PHISET_DIR=/home/dilks/h4/phiset
 export MASSCUTS_FILE=mass_cuts_12.dat
 export EXCLUSION_LIST=exclusion_list
 
 export MASS_CUT_TYPE=en
+
+export TRIGGER_TYPE="All"
 
 export PHI_LOW=-3.150000
 export PHI_HIGH=3.150000

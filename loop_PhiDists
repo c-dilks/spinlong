@@ -1,0 +1,74 @@
+#!/bin/bash
+# builds condor batch file for running PhiDists4.C on .redset/*.root
+# and executes it
+# (for core looper, see ploop_PhiDists)
+
+#if [ $# -eq 4 ]; then
+  #phi=$1
+  #eta=$2
+  #pt=$3
+  #en=$4
+#elif [ $# -ge 1 ]; then
+  #echo "usage: $0 [phi bins] [eta bins] [pt bins] [en bins]"
+  #echo " enter either all four arguments or none to use defaults"
+  #exit 1
+#else
+  #source env_bins.sh
+  #phi=$PHI
+  #eta=$ETA
+  #pt=$PT
+  #en=$EN
+#fi
+
+#echo ""
+#echo "binning"
+#echo "-------"
+#echo "phi=$phi"
+#echo "eta=$eta"
+#echo "pt=$pt"
+#echo "en=$en"
+#echo ""
+
+
+echo "removing phiset/*.root in 3 seconds..."
+sleep 3
+rm -r $PHISET_DIR/*.root
+
+
+job="phi.bat"
+> $job
+
+echo "building batch file..."
+echo "Executable = `which root`" >> $job
+echo "Universe = vanilla" >> $job
+echo "notification = never" >> $job
+echo "getenv = True" >> $job
+echo '+Experiment = "star"' >> $job
+echo '+Job_Type = "cas"' >> $job
+echo "" >> $job
+
+log="logfiles"
+wd=$(pwd)
+pushd $REDSET_DIR > /dev/null
+ls Red*.root > $wd/filelist
+popd > /dev/null
+
+#cat filelist
+cnt=1
+
+while read line; do
+  echo "Arguments = -b -q PhiDists4.C(\\\"${line}\\\")" >> $job
+  echo "Log    = ${log}/Phi${cnt}.log" >> $job
+  echo "Output = ${log}/Phi${cnt}.out" >> $job
+  echo "Error  = ${log}/Phi${cnt}.err" >> $job
+  echo "Queue" >> $job
+  echo "" >> $job
+  let cnt++
+done < filelist
+
+njobs=$(grep -c . filelist)
+rm filelist
+echo "Submitting $njobs jobs to condor"
+condor_submit $job
+touch $PHISET_DIR/all.root
+rm $PHISET_DIR/all.root

@@ -15,6 +15,7 @@ Environ::Environ()
 
   sscanf(gSystem->Getenv("SPINDIR"),"%s",SpinDir);
   sscanf(gSystem->Getenv("MASS_CUT_TYPE"),"%s",MassCutType);
+  sscanf(gSystem->Getenv("TRIGGER_TYPE"),"%s",TriggerType);
 
   sscanf(gSystem->Getenv("MASSCUTS_FILE"),"%s",MassCutsFileName);
   sscanf(gSystem->Getenv("EXCLUSION_LIST"),"%s",ExclusionListName);
@@ -27,6 +28,7 @@ Environ::Environ()
   sscanf(gSystem->Getenv("POL_FILE"),"%s",pol_file);
   sscanf(gSystem->Getenv("OUTPUT_DIR"),"%s",output_dir);
   sscanf(gSystem->Getenv("REDSET_DIR"),"%s",redset_dir);
+  sscanf(gSystem->Getenv("PHISET_DIR"),"%s",phiset_dir);
 
   sscanf(gSystem->Getenv("WHICH_ETA_CUT"),"%d",&which_eta_cut);
 

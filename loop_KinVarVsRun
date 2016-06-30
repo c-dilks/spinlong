@@ -9,7 +9,9 @@ while read trigger; do
   root -b -q KinVarVsRun.C'("Eta","'${trigger}'")' &
   root -b -q KinVarVsRun.C'("Phi","'${trigger}'")' &
   root -b -q KinVarVsRun.C'("Pt","'${trigger}'")' &
-  root -b -q KinVarVsRun.C'("E12","'${trigger}'")' 
+  root -b -q KinVarVsRun.C'("E12","'${trigger}'")' &
+  root -b -q KinVarVsRun.C'("M12","'${trigger}'")' &
+  root -b -q KinVarVsRun.C'("Z","'${trigger}'")' 
 
 done < trigz
 

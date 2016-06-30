@@ -6,7 +6,7 @@ ROOTGLIBS := $(shell root-config --glibs)
 
 ifeq ($(ARCH),linux)
 CXX = g++
-CXXFLAGS = -O -Wno-deprecated -fPIC -m32 -fno-inline -Wno-write-strings
+CXXFLAGS = -g -O -Wno-deprecated -fPIC -m32 -fno-inline -Wno-write-strings
 LD = g++
 LDFLAGS = -O
 SOFLAGS = -shared

@@ -228,8 +228,8 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
   if(validity) {
     if(trig_index>=0) {
       validity=false;
-      if(KB->PtInRange(Pt,runnum,idx,trig_index) &&
-         KB->EnInRange(E12,runnum,idx,trig_index)) {
+      if(KB->PtInRange(Pt,runnum,idx,trig_index) 
+         /*&& KB->EnInRange(E12,runnum,idx,trig_index)*/) {
         validity = true;
       };
     };

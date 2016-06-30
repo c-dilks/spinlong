@@ -24,6 +24,10 @@ void Bin_Splitter(Int_t year=12,
   };
 
 
+  // trigger
+  char trigger[16]; strcpy(trigger,"All");
+
+
   // pi0 mass cut type (by pt or by en)
   TString mass_cut_type="en";
 
@@ -32,6 +36,7 @@ void Bin_Splitter(Int_t year=12,
   TString counts_file,rtree_file,pol_file,trigid_file;
   TString fmsrootdir;
   TString masscuts_file,exclusion_list;
+  TString output_dir,redset_dir,phiset_dir;
   switch(year) {
     case 12:
       fmsrootdir = "/home/dilks/h4/";
@@ -50,6 +55,7 @@ void Bin_Splitter(Int_t year=12,
   exclusion_list = "exclusion_list";
   output_dir = fmsrootdir+"Output";
   redset_dir = fmsrootdir+"redset";
+  phiset_dir = fmsrootdir+"phiset";
 
 
 
@@ -132,11 +138,15 @@ void Bin_Splitter(Int_t year=12,
   printf("export POL_FILE=%s\n",pol_file.Data());
   printf("export OUTPUT_DIR=%s\n",output_dir.Data());
   printf("export REDSET_DIR=%s\n",redset_dir.Data());
+  printf("export PHISET_DIR=%s\n",phiset_dir.Data());
   printf("export MASSCUTS_FILE=%s\n",masscuts_file.Data());
   printf("export EXCLUSION_LIST=%s\n",exclusion_list.Data());
 
   // mass cut type
   printf("\nexport MASS_CUT_TYPE=%s\n",mass_cut_type.Data());
+
+  // trigger type
+  printf("\nexport TRIGGER_TYPE=\"%s\"\n",trigger);
 
 
   // phi
