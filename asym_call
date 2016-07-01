@@ -1,0 +1,57 @@
+#!/bin/bash
+# runs double and single spin analyses, and draws output
+
+if [ $# -eq 1 ]; then
+  outputdir="$1"
+else
+  outputdir="output"
+
+  #if [ $EN_BINS -eq 1 -a $PT_BINS -ne 1 ]; then
+    #kindep="pt"
+  #elif [ $EN_BINS -ne 1 -a $PT_BINS -eq 1 ]; then
+    #kindep="en"
+  #else
+    #echo "kinematic dependence unknown"
+    #exit
+  #fi
+  #echo "$kindep dependence"
+  #outputdir="asym_plots/output_${TRIGGER_TYPE}_$kindep"
+fi
+
+outputdir="asym_plots/$outputdir"
+
+mkdir -p $outputdir
+rm $outputdir/*
+
+# copy binning env variables 
+grep -v SPINDIR env_bins.sh > $outputdir/env_bins.sh
+echo "export SPINDIR=$SPINDIR" >> $outputdir/env_bins.sh
+
+for class in "sph" "pi0" "thr" "etm"; do
+  root -b -q -l 'Asym4.C('\"${class}\"','\"all\"')'
+  root -b -q -l 'DrawAsymmetries.C('\"${class}\"')'
+  mv -v spin.root ${outputdir}/spin_${class}.root
+  mv -v canv_kindep_0.png ${outputdir}/canv_kindep_z0_${class}.png
+  mv -v canv_kindep_1.png ${outputdir}/canv_kindep_z1_${class}.png
+  mv -v canv_z0_Y-SSA.png ${outputdir}/canv_Y-SSA_${class}.png
+  mv -v canv_z0_B-SSA.png ${outputdir}/canv_B-SSA_${class}.png
+  mv -v canv_z0_DSA.png ${outputdir}/canv_DSA_${class}.png
+  mv -v asymcanv_${class}.root ${outputdir}/
+  htmlfile="${outputdir}/${class}_phi_dists.html"
+  echo '<html>' >> $htmlfile
+  echo '<head><title>Asymmetries</title></head>' >> $htmlfile
+  echo '<body>' >> $htmlfile
+  echo '<div style="width:1250px">' >> $htmlfile
+  echo '<img width="400" src=canv_Y-SSA_'${class}'.png>' >> $htmlfile
+  echo '<img width="400" src=canv_B-SSA_'${class}'.png>' >> $htmlfile
+  echo '<img width="400" src=canv_DSA_'${class}'.png>' >> $htmlfile
+  echo '</body>' >> $htmlfile
+  echo '</html>' >> $htmlfile
+done
+
+echo ""
+echo "files written to ${outputdir}/"
+
+touch spinout.tar.gz
+rm spinout.tar.gz
+tar czvf spinout.tar.gz ${outputdir}

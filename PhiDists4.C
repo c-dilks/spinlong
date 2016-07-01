@@ -81,18 +81,28 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
     if(runnum != runnum_tmp)
     {
       runnum_tmp = runnum;
-      if(NRUNS_tmp<30) runnum_arr[NRUNS_tmp] = runnum;
-      else 
+      ev->runnum=runnum;
+      if(!(ev->ExcludedRun()) || !(RD->RellumConsistent(runnum)))
       {
-        fprintf(stderr,"ERROR: more than 30 runs in root file; increase arbitrarily defined max\n");
-        return;
+        if(NRUNS_tmp<30) runnum_arr[NRUNS_tmp] = runnum;
+        else 
+        {
+          fprintf(stderr,"ERROR: more than 30 runs in root file; increase arbitrarily defined max\n");
+          return;
+        };
+        NRUNS_tmp++;
       };
-      NRUNS_tmp++;
     };
   };
   const Int_t NRUNS = NRUNS_tmp;
   for(Int_t r=0; r<NRUNS; r++) printf("%d\n",runnum_arr[r]);
   printf("NRUNS=%d\n",NRUNS);
+  
+  // catch files with no good runs (not excluded via exclusion_list and isConsistent==true)
+  if(NRUNS<1) {
+    fprintf(stderr,"[++++++++++++++] No good runs in this file\n");
+    return;
+  };
 
 
 
@@ -199,6 +209,10 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
     tree->GetEntry(x);
     LT->runnum = runnum;
 
+    // check if run is on exclusion_list
+    ev->runnum = runnum;
+    if(ev->ExcludedRun()) continue;
+
     // run number --> array index
     if(runnum != runnum_tmp)
     {
@@ -210,6 +224,7 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
       b_pol = RD->BluePol(runnum);
       y_pol = RD->YellPol(runnum);
     };
+
 
     // check for rellum consistency and valid polarization and FMS trigger
     if(isConsistent==1 && b_pol>0 && y_pol>0 && LT->Fired(chosen_trig))

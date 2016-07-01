@@ -1,0 +1,28 @@
+#!/bin/bash
+# executes KinVarVsRun for all kinematic variables simultaneously
+
+root -b -q ListTriggers.C | grep trigger | awk '{print $2}' > trig_list
+
+PHISET_DIR_MAIN="$PHISET_DIR"
+
+while read trigger; do
+  echo "- - -- -- --- ---- ----- ------- ----- ---- --- -- -- - -"
+  echo $trigger
+
+  export TRIGGER_TYPE="$trigger"
+  export PHISET_DIR="${PHISET_DIR_MAIN}_${trigger}"
+  mkdir -pv $PHISET_DIR
+
+  env|grep TRIGGER_TYPE
+  env|grep PHISET
+
+  ./loop_PhiDists
+  sleep 5 
+  ./wait_for_condor
+  root -b -q toa_add.C
+  ./asym_call output_${trigger}
+
+done < trig_list
+
+rm trig_list
+

@@ -30,7 +30,7 @@
 #echo ""
 
 
-echo "removing phiset/*.root in 3 seconds..."
+echo "removing ${PHISET_DIR}/*.root in 3 seconds..."
 sleep 3
 rm -r $PHISET_DIR/*.root
 
