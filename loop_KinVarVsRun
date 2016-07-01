@@ -1,7 +1,8 @@
 #!/bin/bash
 # executes KinVarVsRun for all kinematic variables simultaneously
 
-root -b -q ListTriggers.C | grep trigger | awk '{print $2}' > trigz
+echo "UNCOMMENT NEXT LINE BEFORE YOU RUN!"; sleep 10
+#root -b -q ListTriggers.C | grep trigger | awk '{print $2}' > trigz
 
 while read trigger; do
   echo $trigger
