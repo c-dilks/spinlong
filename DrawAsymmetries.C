@@ -4,7 +4,7 @@ void DrawAsymmetries(const char * evclass="pi0", const char * filetype="png", co
 {
   // ANALYSIS TYPE -- use this swtich to change between a longitudinal and a transverse analysis
   enum atypes {kLong,kTrans};
-  const Int_t ANALYSIS_TYPE = kLong;  // ---- SWITCH ---- //
+  const Int_t ANALYSIS_TYPE = kTrans;  // ---- SWITCH ---- //
 
   Int_t NPARAM_tmp;
   switch(ANALYSIS_TYPE) {
@@ -12,7 +12,7 @@ void DrawAsymmetries(const char * evclass="pi0", const char * filetype="png", co
       NPARAM_tmp = 1;
       break;
     case kTrans:
-      NPRAM_tmp = 2;
+      NPARAM_tmp = 2;
       break;
   };
   const Int_t NPARAM = NPARAM_tmp;

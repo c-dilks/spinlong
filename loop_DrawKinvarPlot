@@ -2,5 +2,7 @@
 
 for file in kinvarset/*.root; do
   echo $file
-  root -b -q DrawKinvarPlot.C'("'${file}'","pi0")'
+  for class in "sph" "pi0" "thr" "etm"; do
+    root -b -q DrawKinvarPlot.C'("'${file}'","'${class}'")'
+  done
 done

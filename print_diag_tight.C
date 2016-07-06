@@ -1,16 +1,16 @@
-// prints PDFs from diagset/setdep.root
+// prints PDFs from diagset_tight/setdep.root
 
 TObjArray * arr;
 
-void print_diag() {
+void print_diag_tight() {
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;
 
-  TString filename = Form("%s/setdep.root",RD->env->diagset_dir);
+  TString filename = Form("%s_tight/setdep.root",RD->env->diagset_dir);
   TFile * infile = new TFile(filename.Data(),"READ");
 
-  gROOT->ProcessLine(".! rm -rv pdf_kincorr");
+  gROOT->ProcessLine(".! rm -rv pdf_kincorr_tight");
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(1);
 
@@ -38,8 +38,8 @@ void print_diag() {
           while(trig_key=(TKey*)trig_it()) {
             if(gROOT->GetClass(trig_key->GetClassName())->InheritsFrom("TObjArray")) {
               arr = (TObjArray*)trig_key->ReadObj();
-              pdf_name = "pdf_kincorr/"+curr_dir_name+"/"+TString(trig_key->GetName())+".pdf";
-              mkdir_str = ".! mkdir -pv pdf_kincorr/"+curr_dir_name;
+              pdf_name = "pdf_kincorr_tight/"+curr_dir_name+"/"+TString(trig_key->GetName())+".pdf";
+              mkdir_str = ".! mkdir -pv pdf_kincorr_tight/"+curr_dir_name;
               //printf("execute: %s\n",mkdir_str.Data());
               gROOT->ProcessLine(mkdir_str.Data());
               for(int x=0; x<arr->GetEntries(); x++) {

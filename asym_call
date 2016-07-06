@@ -27,7 +27,7 @@ rm $outputdir/*
 grep -v SPINDIR env_bins.sh > $outputdir/env_bins.sh
 echo "export SPINDIR=$SPINDIR" >> $outputdir/env_bins.sh
 
-for class in "sph" "pi0" "thr" "etm"; do
+for class in "sph" "pi0" "thr" "dpi"; do
   root -b -q -l 'Asym4.C('\"${class}\"','\"all\"')'
   root -b -q -l 'DrawAsymmetries.C('\"${class}\"')'
   mv -v spin.root ${outputdir}/spin_${class}.root

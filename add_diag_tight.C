@@ -1,7 +1,7 @@
 // combines diagsetfiles
 //
 
-void add_diag() {
+void add_diag_tight() {
   //Bool_t printPDFs=false; // DEPRECATED; moved to print_diag.C
   gROOT->Reset();
 
@@ -13,12 +13,12 @@ void add_diag() {
 
 
 
-  // build array of diagset/*.root TFile pointers
+  // build array of diagset_tight/*.root TFile pointers
   // and get set-names
   const Int_t MAX_NUM_FILES=200;
   TFile * diag_file[MAX_NUM_FILES]; 
   Int_t diag_file_cnt=0;
-  TString cmd = Form(".! ls %s/diag*.root | sort > toa_files.txt",RD->env->diagset_dir);
+  TString cmd = Form(".! ls %s_tight/diag*.root | sort > toa_files.txt",RD->env->diagset_dir);
   gROOT->ProcessLine(cmd.Data());
   const Int_t filename_buffer=64;
   char filename[MAX_NUM_FILES][filename_buffer];
@@ -33,9 +33,9 @@ void add_diag() {
     while(!feof(toa_files)) {
       fgets(filename[diag_file_cnt],filename_buffer,toa_files);
 
-      // fgets reads in "returns"; this hack gets rid of them (expects format diagset_${year}/diag*.root
+      // fgets reads in "returns"; this hack gets rid of them
       sscanf(filename[diag_file_cnt],"%s",filename[diag_file_cnt]);
-      sscanf(filename[diag_file_cnt],"diagset_%*d/diagset%[^.].root",setname[diag_file_cnt]);
+      sscanf(filename[diag_file_cnt],"diagset_%*d_tight/diagset%[^.].root",setname[diag_file_cnt]);
       
 
       if(strcmp(filename[diag_file_cnt],"")) {
@@ -145,7 +145,7 @@ void add_diag() {
   //    then plot thresh vs. index
   //    It was done this way because the tree-filling loops below were written well before
   //    this tree was even considered, and it's way too difficult to change the loop structure now
-  TString outfile_n = Form("%s/setdep.root",RD->env->diagset_dir);
+  TString outfile_n = Form("%s_tight/setdep.root",RD->env->diagset_dir);
   TFile * outfile = new TFile(outfile_n.Data(),"RECREATE");
   TTree * threshtr = new TTree("threshtr","threshtr");
   Int_t th_runnum,th_index,th_class,th_trig;
@@ -225,7 +225,7 @@ void add_diag() {
     //printf("\n");
     printf("processing set %s\n",setname[s]);
 
-    // open diagset file
+    // open diagset_tight file
     diag_file[s]->cd();
     TIter next(gDirectory->GetListOfKeys());
 

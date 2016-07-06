@@ -25,7 +25,7 @@ void DrawKinvarPlot(TString filename="kinvarset/All_Pt_vs_run.root",
   sprintf(hnewtitle,"%s -- %s triggers",htitle,trig);
   h->SetTitle(hnewtitle);
 
-  h->SetMinimum(0.001);
+  //h->SetMinimum(0.001);
 
   if(!strcmp(typ,"Pt")) {
     gt->SetLineWidth(2);
@@ -53,6 +53,7 @@ void DrawKinvarPlot(TString filename="kinvarset/All_Pt_vs_run.root",
   g->Draw("APLX");
   //g->GetXaxis()->SetRangeUser(xmin,xmax);
   
-  TString outname = filename.ReplaceAll("root","png");
+  TString outname = filename.ReplaceAll(".root"," "+classname);
+  outname = outname+".png";
   c->Print(outname.Data(),"png");
 };

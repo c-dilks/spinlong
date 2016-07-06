@@ -1,6 +1,6 @@
 // draws plots from diag.root
 
-void DrawDiagnostics(const char * filename="diagset/all.root")
+void DrawDiagnostics(const char * filename="diagset_12/all.root")
 {
   TFile * infile = new TFile(filename,"READ");
   Int_t RESX = 400;

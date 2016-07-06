@@ -17,6 +17,7 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
   EventClass * ev = new EventClass(RD->env);
 
 
+
   // determine index of TRIGGER_TYPE
   Int_t chosen_trig = LT->Index(TString(RD->env->TriggerType));
 
@@ -32,7 +33,7 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
 
 
   // read redset tree and set output file name
-  Int_t runnum,bx,blue,yell,pattern,ClIndex;
+  Int_t runnum,bx,blue,yell,pattern,ClIndex,Nclust,Evnum;
   Float_t M12,N12,E12,Z,Phi,Eta,Pt,b_pol,y_pol;
   Bool_t kicked,isConsistent;
   char setname[32];
@@ -53,6 +54,8 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
   tree->SetBranchAddress("Eta",&Eta);
   tree->SetBranchAddress("Pt",&Pt);
   tree->SetBranchAddress("ClIndex",&ClIndex);
+  tree->SetBranchAddress("Nclust",&Nclust);
+  tree->SetBranchAddress("Evnum",&Evnum);
   tree->SetBranchAddress("L2sum",LT->L2sum);
   tree->SetBranchAddress("lastdsm",LT->tcu->lastdsm);
 
@@ -197,11 +200,13 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
 
   // fill phi distributions and wdists 
   Int_t ss,gg,pp,ee,rr;
+  Int_t Evnum_tmp=0;
+  Int_t xx;
   Bool_t EVPinRange;
   rr=-1; runnum_tmp=0;
   printf("fill phi dists...\n");
 
-  //for(Int_t x=0; x<(tree->GetEntries())/100; x++) {
+  //for(Int_t x=0; x<(tree->GetEntries())/10; x++) {
   for(Int_t x=0; x<tree->GetEntries(); x++) {
     if((x%10000)==0) printf("%.2f%%\n",100*((Float_t)x)/((Float_t)tree->GetEntries()));
     ss=gg=pp=ee=-1; // reset 
@@ -258,9 +263,32 @@ void PhiDists4(const char * filename="RedOutputset080Ba.root",Bool_t debug=false
           // determine event class(es)
           for(Int_t c=0; c<N_CLASS; c++)
           {
+            // for di-pions //
+            if(c==ev->Idx("dpi") && x+1!=tree->GetEntries()) {
+              if(ClIndex!=0) continue; // only use ClIndex==0 pions
+              //printf("----------\n");
+              Evnum_tmp = Evnum;
+              xx = 0;
+              while(Evnum==Evnum_tmp && x+xx<tree->GetEntries()) {
+                ev->AppendKinematics(E12,Pt,Eta,Phi,M12,Z,N12,xx);
+                //printf("x=%d xx=%d Evnum=%d ClIndex=%d Nclust=%d E12=%f Pt=%f\n",
+                  //x,xx,Evnum,ClIndex,Nclust,E12,Pt);
+                xx++;
+                tree->GetEntry(x+xx);
+              };
+              ev->Nclust = xx;
+              tree->GetEntry(x);
+            };
+            ///////
+
             if(ev->Valid(c,chosen_trig))
             {
-              phi_dist[10*c+ss][gg][pp][ee][rr]->Fill(Phi);
+              if(c==ev->Idx("dpi") && x+1!=tree->GetEntries()) {
+                phi_dist[10*c+ss][gg][pp][ee][rr]->Fill(ev->delta_phi);
+              }
+              else {
+                phi_dist[10*c+ss][gg][pp][ee][rr]->Fill(Phi);
+              }
               pt_wdist[c][gg][ee][rr]->Fill(Pt);
               en_wdist[c][gg][pp][rr]->Fill(E12);
               mm_wdist[c][gg][pp][ee][rr]->Fill(M12);

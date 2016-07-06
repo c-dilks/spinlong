@@ -4,14 +4,14 @@ ClassImp(EventClass)
 
 namespace
 {
-  const Int_t N_CLASS = 4;
+  const Int_t N_CLASS = 5;
   enum class_enum
   {
     kSph,
     kPi0,
     kThr,
-    kEtm
-    /*kJps*/
+    kEtm,
+    kDpi
   };
 
   const Float_t Zd = 720;  // distance from IP [cm]
@@ -35,14 +35,14 @@ EventClass::EventClass(Environ * env0, Bool_t DoNotInitKinBounds)
   class_name.insert(std::pair<Int_t,char*>(kPi0,"pi0")); // pi0's
   class_name.insert(std::pair<Int_t,char*>(kThr,"thr")); // three or more photons
   class_name.insert(std::pair<Int_t,char*>(kEtm,"etm")); // eta's
-  //class_name.insert(std::pair<Int_t,char*>(kJps,"jps")); // j/psi's
+  class_name.insert(std::pair<Int_t,char*>(kDpi,"dpi")); // di-pi0's
 
   // event class titles
   class_title.insert(std::pair<Int_t,char*>(kSph,"Single #gamma")); // single photons
   class_title.insert(std::pair<Int_t,char*>(kPi0,"#pi^{0}")); // pi0's
   class_title.insert(std::pair<Int_t,char*>(kThr,"N_{#gamma}>2")); // three or more photons
   class_title.insert(std::pair<Int_t,char*>(kEtm,"#eta-meson")); // eta's
-  //class_title.insert(std::pair<Int_t,char*>(kJps,"J/#psi")); // j/psi's
+  class_title.insert(std::pair<Int_t,char*>(kDpi,"di-#pi{0}")); // di-pi0's
 
   // event class index from name
   for(Int_t n=0; n<N_CLASS; n++)
@@ -97,7 +97,51 @@ void EventClass::SetKinematics(Int_t runnum_,
   ClIndex = ClIndex_;
 };
 
+// appends kinematics to "kinematics" list: kinematics for each cluster;
+// used for multi-hit events which aren't simply two photons
+void EventClass::AppendKinematics(Float_t E12_,
+                                  Float_t Pt_,
+                                  Float_t Eta_,
+                                  Float_t Phi_,
+                                  Float_t M12_,
+                                  Float_t Z_,
+                                  Float_t N12_,
+                                  Int_t ClIndex_)
+{
+  E12list[ClIndex_] = E12_;
+  Ptlist[ClIndex_] = Pt_;
+  Etalist[ClIndex_] = Eta_;
+  Philist[ClIndex_] = Phi_;
+  M12list[ClIndex_] = M12_;
+  Zlist[ClIndex_] = Z_;
+  N12list[ClIndex_] = N12_;
+};
 
+
+// copies current kinematics under use to "tmp" kinematics;
+// RecallKinematics does the opposite
+void EventClass::StoreKinematics()
+{
+  E12tmp = E12;
+  Pttmp = Pt;
+  Etatmp = Eta;
+  Phitmp = Phi;
+  M12tmp = M12;
+  Ztmp = Z;
+  N12tmp = N12;
+  ClIndextmp = ClIndex;
+};
+void EventClass::RecallKinematics()
+{
+  E12 = E12tmp;
+  Pt = Pttmp;
+  Eta = Etatmp;
+  Phi = Phitmp;
+  M12 = M12tmp;
+  Z = Ztmp;
+  N12 = N12tmp;
+  ClIndex = ClIndextmp;
+};
 
 
 // returns event class index
@@ -223,9 +267,53 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
   }
   */
 
+  else if(idx==kDpi) {
+    StoreKinematics();
+    picnt=0;
+    //printf("looping over %d clusters:\n",Nclust);
+    for(int clu=0; clu<Nclust; clu++) {
+      if(picnt<2) {
+        // set main kinematic variables to those of this cluster
+        SetKinematics(runnum,
+                      E12list[clu],
+                      Ptlist[clu],
+                      Etalist[clu],
+                      Philist[clu],
+                      M12list[clu],
+                      Zlist[clu],
+                      N12list[clu],
+                      0);
+        // see if this cluster contains a pi0
+        //if(Valid(kPi0,trig_index)) {
+        // see if this first cluster contains pi0 and second cluster is anything E>10 GeV
+        if(Valid(kPi0,trig_index) || (picnt==1 && E12list[clu]>10.0)) {
+          dipi_E12[picnt] = E12;
+          dipi_Pt[picnt] = Pt;
+          dipi_Eta[picnt] = Eta;
+          dipi_Phi[picnt] = Phi;
+          dipi_M12[picnt] = M12;
+          dipi_Z[picnt] = Z;
+          picnt++;
+          //printf("%d ---%s\n",clu,(picnt==1)?"pion":"second");
+        };
+      };
+    };
+    if(picnt==2) {
+      // compute Z-component of cross product of momenta
+      delta_phi = dipi_Phi[1]-dipi_Phi[2];
+      sin_delta_phi = sin(delta_phi);
+      pt_prod = dipi_Pt[0]*dipi_Pt[1];
+      cross_prod_z = pt_prod * sin_delta_phi;
+      validity = true;
+    };
+    RecallKinematics();
+  };
+   
+   // ------ //
+
 
   // check tighter kinematic cuts (run-by-run, trigger-by-trigger)
-  if(validity) {
+  if(validity && idx!=kDpi) {
     if(trig_index>=0) {
       validity=false;
       if(KB->PtInRange(Pt,runnum,idx,trig_index) 

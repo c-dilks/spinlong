@@ -5,9 +5,9 @@ if [ -z "$SPINDIR" ]; then
   exit
 fi
 
-echo "removing ${DIAGSET_DIR}/*.root in 5 seconds..."
+echo "removing ${DIAGSET_DIR}_tight/*.root in 5 seconds..."
 sleep 5
-rm -r ${DIAGSET_DIR}/*.root
+rm -r ${DIAGSET_DIR}_tight/*.root
 
 ncondor="$(condor_config_val NUM_CPUS)"
 if [ -z $ncondor ]; then
@@ -46,7 +46,7 @@ cnt=0
 
 while read redfile; do
   let cnt++
-  echo "Arguments = -b -q DiagnosticsOne.C(\\\"${redfile}\\\")" >> $job
+  echo "Arguments = -b -q DiagnosticsOneTight.C(\\\"${redfile}\\\")" >> $job
   echo "Log    = ${log}/Diag.${redfile}.log" >> $job
   echo "Output = ${log}/Diag.${redfile}.out" >> $job
   echo "Error  = ${log}/Diag.${redfile}.err" >> $job

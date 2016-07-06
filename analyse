@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+  echo "usage: $0 [name of asym_plots subdir]"
+  exit
+fi
+  
+./loop_PhiDists
+sleep 5 
+./wait_for_condor
+root -b -q toa_add.C
+./asym_call $1

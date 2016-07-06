@@ -141,6 +141,7 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
         };
         for(Int_t c=0; c<N_CLASS; c++)
         {
+          if(c==ev->Idx("dpi")) continue;
           // use "loose" version of EventClass::Valid because we want to use this program
           // to look at drifting trigger thresholds etc. 
           if(ev->Valid(c) && T->Fired(TString(chosen_trig)))

@@ -1,5 +1,4 @@
 #!/bin/bash
-# executes KinVarVsRun for all kinematic variables simultaneously
 
 root -b -q ListTriggers.C | grep trigger | awk '{print $2}' > trig_list
 

@@ -4,25 +4,37 @@
 
 export SPINDIR=$(pwd)
 
-export YEAR=12
-export COUNTS_FILE=/home/dilks/h4/root12fms/scalers12/counts.root
-export RTREE_FILE=/home/dilks/h4/root12fms/scalers12/rtree.root
-export POL_FILE=/home/dilks/h4/root12fms/polar12/pol.root
-export OUTPUT_DIR=/home/dilks/h4/Output
-export REDSET_DIR=/home/dilks/h4/redset
-export PHISET_DIR=/home/dilks/h4/phiset
-export MASSCUTS_FILE=mass_cuts_12.dat
+export YEAR=13
+export COUNTS_FILE=/home/dilks/h5/root12fms/scalers13/counts.root
+export RTREE_FILE=/home/dilks/h5/root12fms/scalers13/rtree.root
+export POL_FILE=/home/dilks/h5/root12fms/polar13/pol.root
+export OUTPUT_DIR=/home/dilks/h5/Output
+export REDSET_DIR=/home/dilks/h5/redset
+export PHISET_DIR=/home/dilks/h5/phiset
+export DIAGSET_DIR=diagset_13
+export MASSCUTS_FILE=mass_cuts_13.dat
 export EXCLUSION_LIST=exclusion_list
 
 export MASS_CUT_TYPE=en
 
 export TRIGGER_TYPE="All"
 
-export PHI_LOW=-3.150000
-export PHI_HIGH=3.150000
-export PHI_BINS=1
-export PHI_DIV_0=-3.150000
-export PHI_DIV_1=3.150000
+export PHI_LOW=-3.141590
+export PHI_HIGH=3.141590
+
+export PHI_LOW=-3.534289
+export PHI_HIGH=3.534289
+export PHI_BINS=9
+export PHI_DIV_0=-3.534289
+export PHI_DIV_1=-2.748891
+export PHI_DIV_2=-1.963494
+export PHI_DIV_3=-1.178096
+export PHI_DIV_4=-0.392699
+export PHI_DIV_5=0.392699
+export PHI_DIV_6=1.178096
+export PHI_DIV_7=1.963494
+export PHI_DIV_8=2.748891
+export PHI_DIV_9=3.534289
 
 export ETA_LOW=2.650000
 export ETA_HIGH=3.900000
@@ -32,11 +44,12 @@ export ETA_DIV_1=3.900000
 
 export PT_LOW=0.000000
 export PT_HIGH=10.000000
-export PT_BINS=3
+export PT_BINS=4
 export PT_DIV_0=0.000000
-export PT_DIV_1=5.000000
-export PT_DIV_2=6.500000
-export PT_DIV_3=10.000000
+export PT_DIV_1=3.750000
+export PT_DIV_2=5.000000
+export PT_DIV_3=6.500000
+export PT_DIV_4=10.000000
 
 export EN_LOW=0.000000
 export EN_HIGH=100.000000

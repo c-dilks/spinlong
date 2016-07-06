@@ -20,7 +20,8 @@ void MassCutter(TString TriggerType="All")
 
 
   // load mass dists for each en bin
-  TFile * infile = new TFile("diagset/all.root","READ");
+  TString infile_n = Form("%s/all.root",RD->env->diagset_dir);
+  TFile * infile = new TFile(infile_n.Data(),"READ");
   TObjArray * mdist_arr[10];
   TH1D  * mdist[10];
   char mdist_arr_n[10][64];

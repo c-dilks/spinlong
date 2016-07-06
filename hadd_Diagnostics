@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pushd diagset
+pushd $DIAGSET_DIR
 touch all.root; rm all.root
 hadd all.root diag*.root
 popd

@@ -31,7 +31,7 @@ void ReduceData(const char * filename="Outputset080Ba.root")
   Int_t ent = twotr->GetEntries();
   printf(" TwoTr->GetEntries() = %d\n",ent);
 
-  Int_t ClIndex;
+  Int_t ClIndex,Nclust,Evnum;
   Float_t M12,N12,E12,Phi,Eta,Pt,Z;
   Int_t spin,TrigBits,runnum,fill,Bunchid7bit;
   Bool_t kicked_str;
@@ -53,6 +53,8 @@ void ReduceData(const char * filename="Outputset080Ba.root")
   UInt_t lastdsm[8];
 
   twotr->SetBranchAddress("ClIndex",&ClIndex);
+  twotr->SetBranchAddress("Nclust",&Nclust);
+  twotr->SetBranchAddress("Evnum",&Evnum);
   twotr->SetBranchAddress("M12",&M12);
   twotr->SetBranchAddress("N12",&N12);
   twotr->SetBranchAddress("E12",&E12);
@@ -68,6 +70,8 @@ void ReduceData(const char * filename="Outputset080Ba.root")
   twotr->SetBranchAddress("lastdsm",lastdsm);
 
   str->Branch("ClIndex",&ClIndex,"ClIndex/I");
+  str->Branch("Nclust",&Nclust,"Nclust/I");
+  str->Branch("Evnum",&Evnum,"Evnum/I");
   str->Branch("M12",&M12,"M12/F");
   str->Branch("N12",&N12,"N12/F");
   str->Branch("E12",&E12,"E12/F");
@@ -146,7 +150,7 @@ void ReduceData(const char * filename="Outputset080Ba.root")
 
 
     // reduction cut
-    if(M12>=0 && T->Fired("All"))
+    if(/*M12>=0 &&*/ T->Fired("All"))
     {
       if(runnum!=runnum_tmp)
       {

@@ -2,8 +2,10 @@
 //
 // this script only stream in one redset file and is to be run
 // within condor
+//
+// USES THIGHTER KINEMATICS CUTS FOR PI0S
 
-void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
+void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
 {
   // if enableOverlap=true, fill overlap matrices; may cause slow-down
   const Bool_t enableOverlap = true;
@@ -16,7 +18,7 @@ void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;
   LevelTwo * LT = new LevelTwo(RD->env);
-  EventClass * ev = new EventClass(RD->env,true);
+  EventClass * ev = new EventClass(RD->env,false);
 
 
   // open tree
@@ -420,18 +422,20 @@ void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
           {
             if(LT->Fired(t))
             {
-              pt_vs_eta[c][t]->Fill(Eta,Pt);
-              en_vs_eta[c][t]->Fill(Eta,E12);
-              pt_vs_phi[c][t]->Fill(Phi,Pt);
-              en_vs_phi[c][t]->Fill(Phi,E12);
-              eta_vs_phi[c][t]->Fill(Phi,Eta);
-              pt_vs_en[c][t]->Fill(E12,Pt);
-              y_vs_x[c][t]->Fill(ev->Xd,ev->Yd);
+              if(ev->Valid(c,t)) {
+                pt_vs_eta[c][t]->Fill(Eta,Pt);
+                en_vs_eta[c][t]->Fill(Eta,E12);
+                pt_vs_phi[c][t]->Fill(Phi,Pt);
+                en_vs_phi[c][t]->Fill(Phi,E12);
+                eta_vs_phi[c][t]->Fill(Phi,Eta);
+                pt_vs_en[c][t]->Fill(E12,Pt);
+                y_vs_x[c][t]->Fill(ev->Xd,ev->Yd);
 
-              pt_rdist[c][t][runcount]->Fill(Pt);
-              en_rdist[c][t][runcount]->Fill(E12);
-              eta_rdist[c][t][runcount]->Fill(Eta);
-              phi_rdist[c][t][runcount]->Fill(Phi);
+                pt_rdist[c][t][runcount]->Fill(Pt);
+                en_rdist[c][t][runcount]->Fill(E12);
+                eta_rdist[c][t][runcount]->Fill(Eta);
+                phi_rdist[c][t][runcount]->Fill(Phi);
+              };
 
               // fill trigger overlap matrices
               if(enableOverlap)
@@ -632,7 +636,7 @@ void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
   // write output
   char outfilename[256];
   sscanf(infile_name,"RedOutput%s",outfilename);
-  sprintf(outfilename,"%s/diag%s",RD->env->diagset_dir,outfilename);
+  sprintf(outfilename,"%s_tight/diag%s",RD->env->diagset_dir,outfilename);
   TFile * outfile = new TFile(outfilename,"RECREATE");
   outfile->cd();
 

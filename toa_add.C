@@ -5,7 +5,6 @@
 //
 // -- reads rtree.root
 
-/// s/j/c/g... now change in for loops c<3 to c<N_CLASS////////////////////////////////////////////
 
 void toa_add(Bool_t printPDFs=false, Int_t FILTER=0)
 {

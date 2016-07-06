@@ -21,7 +21,7 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
 {
   // ANALYSIS TYPE -- use this swtich to change between a longitudinal and a transverse analysis
   enum atypes {kLong,kTrans};
-  const Int_t ANALYSIS_TYPE = kLong;  // ---- SWITCH ---- //
+  const Int_t ANALYSIS_TYPE = kTrans;  // ---- SWITCH ---- //
 
   Int_t NPARAM_tmp;
   switch(ANALYSIS_TYPE) {
@@ -29,7 +29,7 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
       NPARAM_tmp = 1;
       break;
     case kTrans:
-      NPRAM_tmp = 2;
+      NPARAM_tmp = 2;
       break;
   };
   const Int_t NPARAM = NPARAM_tmp;
@@ -340,9 +340,14 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
 
   char asym_title_kd[NPARAM][asym_bins][20]; // for kin dep plots
   if(ANALYSIS_TYPE==kTrans) {
-    strcpy(asym_title_kd[0][1],"R (Y)");
-    strcpy(asym_title_kd[0][2],"R (B)");
-    strcpy(asym_title_kd[0][3],"A_{#Sigma}");
+    //strcpy(asym_title_kd[0][1],"R (Y)");
+    //strcpy(asym_title_kd[0][2],"R (B)");
+    //strcpy(asym_title_kd[0][3],"A_{#Sigma}");
+    
+    strcpy(asym_title_kd[0][1],"A_{L} (Y)");
+    strcpy(asym_title_kd[0][2],"A_{L} (B)");
+    strcpy(asym_title_kd[0][3],"A_{LL}");
+
     strcpy(asym_title_kd[1][1],"A_{N}^{Y}");
     strcpy(asym_title_kd[1][2],"A_{N}^{B}");
     strcpy(asym_title_kd[1][3],"A_{TT}");
@@ -498,6 +503,7 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
             if(ANALYSIS_TYPE==kTrans)
             {
               asym_fit[a][g][p][e] = new TF1(asym_fit_n[a][g][p][e],"[0]+[1]*cos(2*x)",RD->env->PhiLow,RD->env->PhiHigh);
+              //asym_fit[a][g][p][e] = new TF1(asym_fit_n[a][g][p][e],"[0]+[1]*sin(2*x)",RD->env->PhiLow,RD->env->PhiHigh); // SINE TEST for dpi
               asym_fit[a][g][p][e]->SetParName(0,"A_{#Sigma}");
               asym_fit[a][g][p][e]->SetParName(1,"A_{TT}");
             }
@@ -511,7 +517,8 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
           {
             if(ANALYSIS_TYPE==kTrans)
             {
-              asym_fit[a][g][p][e] = new TF1(asym_fit_n[a][g][p][e],"[0]+[1]*cos(x)",RD->env->PhiLow,RD->env->PhiHigh);
+              //asym_fit[a][g][p][e] = new TF1(asym_fit_n[a][g][p][e],"[0]+[1]*cos(x)",RD->env->PhiLow,RD->env->PhiHigh);
+              asym_fit[a][g][p][e] = new TF1(asym_fit_n[a][g][p][e],"[0]+[1]*sin(x)",RD->env->PhiLow,RD->env->PhiHigh); // SINE TEST for dpi
               asym_fit[a][g][p][e]->SetParName(0,"R");
               if(a==1) asym_fit[a][g][p][e]->SetParName(1,"A_{N}^{Y}");
               else if(a==2) asym_fit[a][g][p][e]->SetParName(1,"A_{N}^{B}");

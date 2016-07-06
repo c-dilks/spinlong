@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=12,
+void Bin_Splitter(Int_t year=13,
                   Int_t whichEtaCut=0)
 {
   // check if valid year
@@ -36,7 +36,7 @@ void Bin_Splitter(Int_t year=12,
   TString counts_file,rtree_file,pol_file,trigid_file;
   TString fmsrootdir;
   TString masscuts_file,exclusion_list;
-  TString output_dir,redset_dir,phiset_dir;
+  TString output_dir,redset_dir,phiset_dir,diagset_dir;
   switch(year) {
     case 12:
       fmsrootdir = "/home/dilks/h4/";
@@ -45,10 +45,10 @@ void Bin_Splitter(Int_t year=12,
       pol_file = fmsrootdir+"root12fms/polar12/pol.root";
       break;
     case 13:
-      fmsrootdir = "/home/dilks/h5/root12fms";
-      counts_file = fmsrootdir+"scalers13/counts.root";
-      rtree_file = fmsrootdir+"scalers13/rtree.root";
-      pol_file = fmsrootdir+"polar13/pol.root";
+      fmsrootdir = "/home/dilks/h5/";
+      counts_file = fmsrootdir+"root12fms/scalers13/counts.root";
+      rtree_file = fmsrootdir+"root12fms/scalers13/rtree.root";
+      pol_file = fmsrootdir+"root12fms/polar13/pol.root";
       break;
   };
   masscuts_file = Form("mass_cuts_%d.dat",year);;
@@ -56,6 +56,7 @@ void Bin_Splitter(Int_t year=12,
   output_dir = fmsrootdir+"Output";
   redset_dir = fmsrootdir+"redset";
   phiset_dir = fmsrootdir+"phiset";
+  diagset_dir = Form("diagset_%d",year);
 
 
 
@@ -67,9 +68,10 @@ void Bin_Splitter(Int_t year=12,
 
 
   // --- azimuth
-  Double_t phi_low=-3.15;
-  Double_t phi_high=3.15;
-  Int_t phi_bins=1;
+  const Float_t PI=3.14159;
+  Double_t phi_low=-1*PI;
+  Double_t phi_high=PI;
+  Int_t phi_bins=0;
 
 
   // --- pseudorapidity
@@ -139,6 +141,7 @@ void Bin_Splitter(Int_t year=12,
   printf("export OUTPUT_DIR=%s\n",output_dir.Data());
   printf("export REDSET_DIR=%s\n",redset_dir.Data());
   printf("export PHISET_DIR=%s\n",phiset_dir.Data());
+  printf("export DIAGSET_DIR=%s\n",diagset_dir.Data());
   printf("export MASSCUTS_FILE=%s\n",masscuts_file.Data());
   printf("export EXCLUSION_LIST=%s\n",exclusion_list.Data());
 
@@ -158,6 +161,23 @@ void Bin_Splitter(Int_t year=12,
     printf("export PHI_BINS=%d\n",phi_bins);
     phi_width = (phi_high-phi_low)/phi_bins;
     for(Int_t i=0; i<=phi_bins; i++) printf("export PHI_DIV_%d=%f\n",i,phi_low+i*phi_width);
+  }
+  else if(phi_bins==0) 
+  { phi_low = -9.0*PI/8.0;
+    phi_high = 9.0*PI/8.0;
+    printf("\nexport PHI_LOW=%f\n",phi_low);
+    printf("export PHI_HIGH=%f\n",phi_high);
+    printf("export PHI_BINS=%d\n",9);
+    printf("export PHI_DIV_0=%f\n",phi_low);
+    printf("export PHI_DIV_1=%f\n",-7.0*PI/8.0);
+    printf("export PHI_DIV_2=%f\n",-5.0*PI/8.0);
+    printf("export PHI_DIV_3=%f\n",-3.0*PI/8.0);
+    printf("export PHI_DIV_4=%f\n",-1.0*PI/8.0);
+    printf("export PHI_DIV_5=%f\n",1.0*PI/8.0);
+    printf("export PHI_DIV_6=%f\n",3.0*PI/8.0);
+    printf("export PHI_DIV_7=%f\n",5.0*PI/8.0);
+    printf("export PHI_DIV_8=%f\n",7.0*PI/8.0);
+    printf("export PHI_DIV_9=%f\n",phi_high);
   }
   else
   {
@@ -199,8 +219,17 @@ void Bin_Splitter(Int_t year=12,
   }
   else
   {
+    // NEW SCHEME
+    pt_bins=4;
+    printf("export PT_BINS=%d\n",pt_bins);
+    printf("export PT_DIV_0=%f\n",pt_low);
+    printf("export PT_DIV_1=%f\n",3.75);
+    printf("export PT_DIV_2=%f\n",5.0);
+    printf("export PT_DIV_3=%f\n",6.5);
+    printf("export PT_DIV_4=%f\n",pt_high);
+
     // for en_bins=1 and eta_bins=1 -- 6 bin scheme
-    ///*
+    /*
     // large cells (or all cells case)
     if(whichEtaCut==kAll || whichEtaCut==kLarge)
     {
@@ -221,7 +250,7 @@ void Bin_Splitter(Int_t year=12,
       printf("export PT_DIV_2=%f\n",4);
       printf("export PT_DIV_3=%f\n",pt_high);
     };
-    //*/
+    */
     // for en_bins=1 and eta_bins=1 -- 8 bin scheme
     /*
     pt_bins=8;

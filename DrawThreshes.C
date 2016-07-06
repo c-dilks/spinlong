@@ -6,7 +6,8 @@ void DrawThreshes(const char * chosen_thresh="pt") {
   EventClass * ev = new EventClass(RD->env);
 
 
-  TFile * infile = new TFile("diagset/setdep.root","READ");
+  TString infile_n = Form("%s/setdep.root",RD->env->diagset_dir);
+  TFile * infile = new TFile(infile_n.Data(),"READ");
   TTree * tr = (TTree*) infile->Get("threshtr");
   Int_t index,cls,trg;
   Float_t th,the;
@@ -24,7 +25,8 @@ void DrawThreshes(const char * chosen_thresh="pt") {
   const Int_t NCLASSES = NCLASSES_tmp;
   const Int_t NTRIGS = NTRIGS_tmp;
 
-  TFile * outfile = new TFile("diagset/thresh.root","RECREATE");
+  TString outfile_n = Form("%s/thresh.root",RD->env->diagset_dir);
+  TFile * outfile = new TFile(outfile_n.Data(),"RECREATE");
   TGraphErrors * gr[NCLASSES][NTRIGS];
   TString gr_n[NCLASSES][NTRIGS];
   Int_t nn[NCLASSES][NTRIGS];
