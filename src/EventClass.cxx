@@ -4,7 +4,7 @@ ClassImp(EventClass)
 
 namespace
 {
-  const Int_t N_CLASS = 5;
+  const Int_t N_CLASS = 4;
   enum class_enum
   {
     kSph,

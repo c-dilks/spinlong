@@ -10,7 +10,7 @@ KinBounds::KinBounds(Environ * env0) {
 
   // open up threshtr and set branch addresses
   char filename[1024];
-  sprintf(filename,"%s/diagset/setdep.root",env->SpinDir);
+  sprintf(filename,"%s/%s/setdep.root",env->SpinDir,env->diagset_dir);
   setdepfile = new TFile(filename,"READ");
 
   thtr = (TTree*) setdepfile->Get("threshtr");

@@ -1,4 +1,4 @@
-void DrawA_LL(TString dir="output.large", Bool_t onlyALL=false)
+void DrawA_LL(TString dir="asym_plots_12/pt_dep_allcells", Bool_t onlyALL=false)
 {
   TString filename=dir+"/spin_pi0.root";
   TFile * infile = new TFile(filename.Data(),"READ");
@@ -53,6 +53,7 @@ void DrawA_LL(TString dir="output.large", Bool_t onlyALL=false)
           graph[d][c]->SetMarkerStyle(kFullCircle);
           graph[d][c]->SetMarkerColor(kBlack);
           graph[d][c]->SetMarkerSize(1.5);
+          graph[d][c]->GetYaxis()->SetRangeUser(-0.01,0.01);
 
           canv[d][c] = new TCanvas(canv_n[d][c].Data(),
             canv_n[d][c].Data(),1000,800);

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ $# -eq 1 ]; then
+  direc=$1
+else
+  direc="kinvarset"
+fi
+
+pushd ${direc}
+
+ls *.png > filez
+
+while read line; do
+  outfile="$(echo $line | sed 's/\ /_/g')"
+  cp -v "$line" $outfile
+  convert $outfile aaa_$(echo $outfile|sed 's/png/pdf/g') 
+  rm $outfile
+done < filez
+rm filez
+
+ls *.png  | sed 's/\.png//g' | awk '{print $2" "$5}' > pairz_tmp
+cat pairz_tmp | sort | uniq > pairz
+rm pairz_tmp
+
+while read line; do 
+  kin=$(echo $line | awk '{print $1}')
+  cls=$(echo $line | awk '{print $2}')
+  echo "creating pdf for ${cls}_${kin}"
+  gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=${cls}_${kin}.pdf aaa*_${kin}_*_${cls}.pdf
+done < pairz
+rm pairz
+rm aaa*.pdf
+popd

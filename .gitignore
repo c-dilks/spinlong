@@ -17,11 +17,14 @@ src/*Dict*
 output/*
 output_*/*
 output_for_spin/*
+OUTPUT/*
 prelim.root
 diag_plots/*.pdf
 *.gz
 asym_plots/*
+asym_plots*/*
 wdist_pdfs/*
+wdist_pdfs*/*
 rptrg15/*.dat
 rptrg15/thresh/trgfiles/*
 rptrg15/thresh/thfiles/*
@@ -35,4 +38,6 @@ pi0_bx_dist.pdf
 pdf_kincorr/*
 pdf_kincorr*/*
 kinvarset/*
+kinvarset*/*
 diag_plots/*
+diag_plots*/*

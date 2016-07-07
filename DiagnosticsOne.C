@@ -3,7 +3,7 @@
 // this script only stream in one redset file and is to be run
 // within condor
 
-void DiagnosticsOne(const char * infile_name = "RedOutputset080Ba.root")
+void DiagnosticsOne(const char * infile_name = "RedOutputset122Ca.root")
 {
   // if enableOverlap=true, fill overlap matrices; may cause slow-down
   const Bool_t enableOverlap = true;

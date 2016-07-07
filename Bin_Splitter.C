@@ -15,7 +15,7 @@
 //  - whichEtaCut = 0-all  1-large  2-small
 
 void Bin_Splitter(Int_t year=13,
-                  Int_t whichEtaCut=0)
+                  Int_t whichEtaCut=2)
 {
   // check if valid year
   if(!(year==12 || year==13)) {
@@ -71,7 +71,7 @@ void Bin_Splitter(Int_t year=13,
   const Float_t PI=3.14159;
   Double_t phi_low=-1*PI;
   Double_t phi_high=PI;
-  Int_t phi_bins=0;
+  Int_t phi_bins=1;
 
 
   // --- pseudorapidity
@@ -102,7 +102,7 @@ void Bin_Splitter(Int_t year=13,
   };
   pt_low = 0; // OVERRIDE FOR DIAGNOSTICS PLOTS----------------------------------------------------------------------------------
   Double_t pt_high=10.0; // pi0 reconstruction is unreliable for pT>15
-  Int_t pt_bins=0;
+  Int_t pt_bins=1;
 
 
   // --- energy
@@ -113,7 +113,7 @@ void Bin_Splitter(Int_t year=13,
     case kLarge: en_high=70; break;
     case kSmall: en_high=100; break;
   };
-  Int_t en_bins=1;
+  Int_t en_bins=0;
 
 
   /////////////////////////////////////
@@ -220,13 +220,28 @@ void Bin_Splitter(Int_t year=13,
   else
   {
     // NEW SCHEME
-    pt_bins=4;
-    printf("export PT_BINS=%d\n",pt_bins);
-    printf("export PT_DIV_0=%f\n",pt_low);
-    printf("export PT_DIV_1=%f\n",3.75);
-    printf("export PT_DIV_2=%f\n",5.0);
-    printf("export PT_DIV_3=%f\n",6.5);
-    printf("export PT_DIV_4=%f\n",pt_high);
+    // large cells (or all cells case)
+    if(whichEtaCut==kAll || whichEtaCut==kLarge)
+    {
+      pt_bins=4;
+      printf("export PT_BINS=%d\n",pt_bins);
+      printf("export PT_DIV_0=%f\n",pt_low);
+      printf("export PT_DIV_1=%f\n",3.75);
+      printf("export PT_DIV_2=%f\n",5.0);
+      printf("export PT_DIV_3=%f\n",6.5);
+      printf("export PT_DIV_4=%f\n",pt_high);
+    }
+    // small cells
+    else if(whichEtaCut==kSmall)
+    {
+      pt_bins=4;
+      printf("export PT_BINS=%d\n",pt_bins);
+      printf("export PT_DIV_0=%f\n",pt_low);
+      printf("export PT_DIV_1=%f\n",3.4);
+      printf("export PT_DIV_2=%f\n",4.4);
+      printf("export PT_DIV_3=%f\n",5.3);
+      printf("export PT_DIV_4=%f\n",pt_high);
+    }
 
     // for en_bins=1 and eta_bins=1 -- 6 bin scheme
     /*
