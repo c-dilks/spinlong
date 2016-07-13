@@ -14,8 +14,8 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=13,
-                  Int_t whichEtaCut=2)
+void Bin_Splitter(Int_t year=12,
+                  Int_t whichEtaCut=0)
 {
   // check if valid year
   if(!(year==12 || year==13)) {
@@ -113,7 +113,7 @@ void Bin_Splitter(Int_t year=13,
     case kLarge: en_high=70; break;
     case kSmall: en_high=100; break;
   };
-  Int_t en_bins=0;
+  Int_t en_bins=1;
 
 
   /////////////////////////////////////

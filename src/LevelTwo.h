@@ -36,6 +36,7 @@ class LevelTwo : public TObject
     Bool_t Fired(Int_t num1);
     void PrintVars();
     Int_t GetAllMaskDSM();
+    Int_t GetOrMaskDSM();
 
     Int_t N; // number of FMS triggers
 
@@ -67,6 +68,7 @@ class LevelTwo : public TObject
     std::map<Int_t, std::map<Int_t,Long_t> > mask_map;
 
     std::map<Int_t, Int_t> allmask_lastdsm;
+    std::map<Int_t, Int_t> ormask_lastdsm;
     std::map<std::string, Bool_t> takeall; // trigger name --> is takeall
 
     ClassDef(LevelTwo,1);

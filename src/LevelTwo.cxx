@@ -7,10 +7,11 @@ ClassImp(LevelTwo)
 
 namespace
 {
-  const Int_t N_TRIG = 12;
+  const Int_t N_TRIG = 13;
   enum trigger_enum 
   {
     kAll,
+    kOr,
     kHT0,
     kSmBS0,
     kSmBS1,
@@ -42,7 +43,8 @@ LevelTwo::LevelTwo(Environ * env0)
 
 
   // fms trigger names
-  trigger_name.insert(std::pair<Int_t,char*>(kAll,"All")); // OR of all triggers except LED
+  trigger_name.insert(std::pair<Int_t,char*>(kAll,"All")); // OR of all triggers, except LED
+  trigger_name.insert(std::pair<Int_t,char*>(kOr,"FMSOR")); // OR of all trigs, except HT,Dijet,LED,Base(=OR of takealls),JP1BEMC
   trigger_name.insert(std::pair<Int_t,char*>(kHT0,"HT0"));
   trigger_name.insert(std::pair<Int_t,char*>(kSmBS0,"SmBS0"));
   trigger_name.insert(std::pair<Int_t,char*>(kSmBS1,"SmBS1"));
@@ -52,10 +54,11 @@ LevelTwo::LevelTwo(Environ * env0)
   trigger_name.insert(std::pair<Int_t,char*>(kJP2,"JP2"));
   trigger_name.insert(std::pair<Int_t,char*>(kDijet,"Dijet"));
   trigger_name.insert(std::pair<Int_t,char*>(kLED,"LED"));
-  trigger_name.insert(std::pair<Int_t,char*>(kBase,"Base"));
+  trigger_name.insert(std::pair<Int_t,char*>(kBase,"Base")); // OR of takealls
   trigger_name.insert(std::pair<Int_t,char*>(kJP1withBarrelJP0,"JP1BEMC"));
 
   takeall.insert(std::pair<std::string,Bool_t>("All",false));
+  takeall.insert(std::pair<std::string,Bool_t>("FMSOR",false));
   takeall.insert(std::pair<std::string,Bool_t>("HT0",false));
   takeall.insert(std::pair<std::string,Bool_t>("SmBS0",false));
   takeall.insert(std::pair<std::string,Bool_t>("SmBS1",true));
@@ -69,6 +72,7 @@ LevelTwo::LevelTwo(Environ * env0)
   takeall.insert(std::pair<std::string,Bool_t>("JP1BEMC",false));
 
   trigger_dbname.insert(std::pair<Int_t,char*>(kAll,"All")); // unused
+  trigger_dbname.insert(std::pair<Int_t,char*>(kOr,"FMSOR")); // unused
   trigger_dbname.insert(std::pair<Int_t,char*>(kHT0,"FMSHT0"));
   trigger_dbname.insert(std::pair<Int_t,char*>(kSmBS0,"FMSSmBS0"));
   trigger_dbname.insert(std::pair<Int_t,char*>(kSmBS1,"FMSSmBS1"));
@@ -110,6 +114,8 @@ LevelTwo::LevelTwo(Environ * env0)
   Long_t mask;
   Long_t allmask=0;
   Int_t allmask_lastdsm_num = 0;
+  Long_t ormask=0;
+  Int_t ormask_lastdsm_num = 0;
   TString name_str;
   
   // build mask map
@@ -129,12 +135,17 @@ LevelTwo::LevelTwo(Environ * env0)
 
       mask = (long)1 << dbidx;
       if(idx!=kLED) allmask = allmask | mask;
+      if(idx!=kLED && idx!=kHT0 && idx!=kDijet && idx!=kBase && idx!=kJP1withBarrelJP0) ormask = ormask | mask;
+
 
       trig_idx.insert(std::pair<Int_t,Long_t>(idx,mask));
       if(rn != rn_tmp || i+1==id_tr->GetEntries())
       {
         idx = trigger_idx.at(std::string("All"));
         trig_idx.insert(std::pair<Int_t,Long_t>(idx,allmask));
+        idx = trigger_idx.at(std::string("FMSOR"));
+        trig_idx.insert(std::pair<Int_t,Long_t>(idx,ormask));
+
         mask_map.insert(std::pair<Int_t,std::map<Int_t,Long_t> >(rn_tmp,trig_idx));
 
         // build lastdsm mask
@@ -143,14 +154,20 @@ LevelTwo::LevelTwo(Environ * env0)
           trig = Name(nn);
           if(WhichBranch(trig)==kLastDSM) {
             allmask_lastdsm_num = allmask_lastdsm_num | (0x1 << tcu->WhichBit(trig));
+            if(nn!=kHT0 && nn!=kDijet && nn!=kLED && nn!=kBase && nn!=kJP1withBarrelJP0) 
+              ormask_lastdsm_num = ormask_lastdsm_num | (0x1 << tcu->WhichBit(trig));
+
           };
         };
         allmask_lastdsm.insert(std::pair<Int_t,Int_t>(rn_tmp,allmask_lastdsm_num));
+        ormask_lastdsm.insert(std::pair<Int_t,Int_t>(rn_tmp,ormask_lastdsm_num));
 
         rn_tmp=rn;
         trig_idx.clear();
         allmask=0;
+        ormask=0;
         allmask_lastdsm_num=0;
+        ormask_lastdsm_num=0;
       };
     }
     else if(name_str(0,3)=="FPD") continue;
@@ -233,7 +250,7 @@ void LevelTwo::PrintTrigIds() {
       (tcu->WhichDSM(trig)).data(),
       tcu->WhichTCUchan(trig,tcu->WhichDSM(trig)),
       tcu->WhichBit(trig),
-      nn==kAll?"OR":which_branch_name[WhichBranch(trig)].Data(),
+      (nn==kAll||nn==kOr)?"OR":which_branch_name[WhichBranch(trig)].Data(),
       IsTakeall(trig)?"yes":"no"
     );
   };
@@ -245,6 +262,13 @@ void LevelTwo::PrintTrigIds() {
       std::bitset<4>(GetAllMaskDSM()).to_string().c_str()
   );
   printf(" ---- allmask (L2sum[0]): %8x\n",Mask(kAll,0));
+  printf(" ---- ormask (lastdsm): %s.%s.%s.%s\n",
+      std::bitset<4>(GetOrMaskDSM()>>12).to_string().c_str(),
+      std::bitset<4>(GetOrMaskDSM()>>8).to_string().c_str(),
+      std::bitset<4>(GetOrMaskDSM()>>4).to_string().c_str(),
+      std::bitset<4>(GetOrMaskDSM()).to_string().c_str()
+  );
+  printf(" ---- ormask (L2sum[0]): %8x\n",Mask(kOr,0));
 };
 
 
@@ -272,6 +296,10 @@ Bool_t LevelTwo::Fired(TString trg) {
   // lastdsm[5] stream has to be satisfied
   if(Index(trg)==kAll) {
     retbool = (L2sum[0] & Mask(trg,0)) || (tcu->lastdsm[5] & GetAllMaskDSM());
+  }
+  // for "FMSOR" trigger, we use the ormasks:
+  else if(Index(trg)==kOr) {
+    retbool = (L2sum[0] & Mask(trg,0)) || (tcu->lastdsm[5] & GetOrMaskDSM());
   }
   else {
     switch(WhichBranch(trg)) {
@@ -313,6 +341,13 @@ void LevelTwo::PrintVars() {
 Int_t LevelTwo::GetAllMaskDSM() {
   Int_t retval;
   try { retval = allmask_lastdsm.at(runnum); }
+  catch(const std::out_of_range& e) { retval=0; };
+  return retval;
+};
+
+Int_t LevelTwo::GetOrMaskDSM() {
+  Int_t retval;
+  try { retval = ormask_lastdsm.at(runnum); }
   catch(const std::out_of_range& e) { retval=0; };
   return retval;
 };

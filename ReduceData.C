@@ -152,6 +152,7 @@ void ReduceData(const char * filename="Outputset080Ba.root")
     // reduction cut
     if(/*M12>=0 &&*/ T->Fired("All"))
     {
+      printf("fired, runnum=%d, Bunchid7bit=%d\n",runnum,Bunchid7bit);
       if(runnum!=runnum_tmp)
       {
         /*

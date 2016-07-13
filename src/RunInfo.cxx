@@ -302,36 +302,45 @@ Float_t RunInfo::YellPolErr(Int_t runnum0)
 Int_t RunInfo::BlueSpin(Int_t runnum0, Int_t bXing)
 {
   Int_t index = HashRun(runnum0);
-  if(bXing>=0 && bXing<120) return blue_spin_map[index][bXing];
-  else
-  {
-    fprintf(stderr,"bXing out of range\n");
-    return 0;
-  };
+  if(index>=0) {
+    if(bXing>=0 && bXing<120) return blue_spin_map[index][bXing];
+    else
+    {
+      fprintf(stderr,"bXing out of range\n");
+      return 0;
+    };
+  }
+  else return 0;
 };
 
 
 Int_t RunInfo::YellSpin(Int_t runnum0, Int_t bXing)
 {
   Int_t index = HashRun(runnum0);
-  if(bXing>=0 && bXing<120) return yell_spin_map[index][bXing];
-  else
-  {
-    fprintf(stderr,"bXing out of range\n");
-    return 0;
-  };
+  if(index>=0) {
+    if(bXing>=0 && bXing<120) return yell_spin_map[index][bXing];
+    else
+    {
+      fprintf(stderr,"bXing out of range\n");
+      return 0;
+    };
+  }
+  else return 0;
 };
 
 
 Bool_t RunInfo::Kicked(Int_t runnum0, Int_t bXing)
 {
   Int_t index = HashRun(runnum0);
-  if(bXing>=0 && bXing<120) return kicked_bx_map[index][bXing];
-  else
-  {
-    fprintf(stderr,"bXing out of range\n");
-    return 0;
-  };
+  if(index>=0) {
+    if(bXing>=0 && bXing<120) return kicked_bx_map[index][bXing];
+    else
+    {
+      fprintf(stderr,"bXing out of range\n");
+      return 0;
+    };
+  }
+  else return 0;
 };
 
 
@@ -340,7 +349,8 @@ Int_t RunInfo::Pattern(Int_t runnum0)
   Int_t fill0 = GetFill(runnum0);
   //if(fill0>fill_thou)
     //return pattern_map[fill0-fill_thou];
-    return pattern_map[GetThreeRightDigits(fill0)];
+  if(fill0>0) return pattern_map[GetThreeRightDigits(fill0)];
+  else return 0;
   //else return 0;
 };
 
