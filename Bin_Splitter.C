@@ -25,7 +25,7 @@ void Bin_Splitter(Int_t year=12,
 
 
   // trigger
-  char trigger[16]; strcpy(trigger,"All");
+  char trigger[16]; strcpy(trigger,"FMSOR");
 
 
   // pi0 mass cut type (by pt or by en)
@@ -102,11 +102,11 @@ void Bin_Splitter(Int_t year=12,
   };
   pt_low = 0; // OVERRIDE FOR DIAGNOSTICS PLOTS----------------------------------------------------------------------------------
   Double_t pt_high=10.0; // pi0 reconstruction is unreliable for pT>15
-  Int_t pt_bins=1;
+  Int_t pt_bins=0;
 
 
   // --- energy
-  Double_t en_low=0; // E>30 cutoff point for pi0s; should allow sph & thr to go lower
+  Double_t en_low=30; // E>30 cutoff point for pi0s; should allow sph & thr to go lower
   Double_t en_high; // can go up to 255, but cluster merging for pi0s is problem for E>100
   switch(whichEtaCut) {
     case kAll: en_high=100; break;

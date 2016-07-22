@@ -214,6 +214,9 @@ void add_diag() {
   TString chtmpstr;
   Int_t runnum;
 
+  Int_t binn;
+  Float_t maxx,curr;
+
 
   
   ////////////////////////////////
@@ -316,6 +319,18 @@ void add_diag() {
                   thresh = curr_fit->GetParameter(1);
                   thresh_err = curr_fit->GetParError(1);
                   sprintf(which_thresh,"%s","pt");
+
+                  // pT thresh at 2/3 of peak height
+                  binn = rdist[rc][rtp][rint][rtg][s]->FindBin(thresh);
+                  maxx = rdist[rc][rtp][rint][rtg][s]->GetBinContent(binn);
+                  curr = maxx;
+                  while(curr > (0.66*maxx) && binn>0) {
+                    binn--;
+                    curr = rdist[rc][rtp][rint][rtg][s]->GetBinContent(binn);
+                  };
+                  thresh = rdist[rc][rtp][rint][rtg][s]->GetBinCenter(binn);
+                  if(binn<=1) fprintf(stderr,"WARNING: binn<=1 (event class=%d, trigger=%s)\n",rc,rtrig);
+
                   threshtr->Fill();
                 };
               };

@@ -17,7 +17,7 @@ export EXCLUSION_LIST=exclusion_list
 
 export MASS_CUT_TYPE=en
 
-export TRIGGER_TYPE="All"
+export TRIGGER_TYPE="FMSOR"
 
 export PHI_LOW=-3.141590
 export PHI_HIGH=3.141590
@@ -33,14 +33,17 @@ export ETA_DIV_1=3.900000
 
 export PT_LOW=0.000000
 export PT_HIGH=10.000000
-export PT_BINS=1
+export PT_BINS=4
 export PT_DIV_0=0.000000
-export PT_DIV_1=10.000000
+export PT_DIV_1=3.750000
+export PT_DIV_2=5.000000
+export PT_DIV_3=6.500000
+export PT_DIV_4=10.000000
 
-export EN_LOW=0.000000
+export EN_LOW=30.000000
 export EN_HIGH=100.000000
 export EN_BINS=1
-export EN_DIV_0=0.000000
+export EN_DIV_0=30.000000
 export EN_DIV_1=100.000000
 
 export WHICH_ETA_CUT=0
