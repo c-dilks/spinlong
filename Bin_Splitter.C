@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=12,
+void Bin_Splitter(Int_t year=13,
                   Int_t whichEtaCut=0)
 {
   // check if valid year
@@ -39,23 +39,22 @@ void Bin_Splitter(Int_t year=12,
   TString output_dir,redset_dir,phiset_dir,diagset_dir;
   switch(year) {
     case 12:
-      fmsrootdir = "/home/dilks/h4/";
-      counts_file = fmsrootdir+"root12fms/scalers12/counts.root";
-      rtree_file = fmsrootdir+"root12fms/scalers12/rtree.root";
-      pol_file = fmsrootdir+"root12fms/polar12/pol.root";
+      fmsrootdir = "/home/dilks/h4/"; //+++
+      counts_file = fmsrootdir+"root12fms/scalers12/counts.root"; //+++
+      rtree_file = fmsrootdir+"root12fms/scalers12/rtree.root"; //+++
       break;
     case 13:
-      fmsrootdir = "/home/dilks/h5/";
-      counts_file = fmsrootdir+"root12fms/scalers13/counts.root";
-      rtree_file = fmsrootdir+"root12fms/scalers13/rtree.root";
-      pol_file = fmsrootdir+"root12fms/polar13/pol.root";
+      fmsrootdir = "/home/dilks/h5/"; //+++
+      counts_file = fmsrootdir+"root12fms/scalers13/counts.root"; //+++
+      rtree_file = fmsrootdir+"root12fms/scalers13/rtree.root"; //+++
       break;
   };
+  pol_file = Form("/home/dilks/polarLUT/pol_%d.root",year); //+++
   masscuts_file = Form("mass_cuts_%d.dat",year);;
   exclusion_list = "exclusion_list";
-  output_dir = fmsrootdir+"Output";
-  redset_dir = fmsrootdir+"redset";
-  phiset_dir = fmsrootdir+"phiset";
+  output_dir = fmsrootdir+"Output"; //+++
+  redset_dir = fmsrootdir+"redset"; //+++
+  phiset_dir = fmsrootdir+"phiset"; //+++
   diagset_dir = Form("diagset_%d",year);
 
 
