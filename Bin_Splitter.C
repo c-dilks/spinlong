@@ -17,6 +17,12 @@
 void Bin_Splitter(Int_t year=13,
                   Int_t whichEtaCut=0)
 {
+  // number of bins
+  Int_t phi_bins = 1;
+  Int_t eta_bins = 1;
+  Int_t pt_bins = 0;
+  Int_t en_bins = 1;
+
   // check if valid year
   if(!(year==12 || year==13)) {
     fprintf(stderr,"ERROR: year must be 12 or 13\n");
@@ -33,6 +39,7 @@ void Bin_Splitter(Int_t year=13,
 
 
   // set up dependencies for specific year: relative luminosity, polarization
+  // lines with comment "+++" are unique to your environment
   TString counts_file,rtree_file,pol_file,trigid_file;
   TString fmsrootdir;
   TString masscuts_file,exclusion_list;
@@ -70,7 +77,6 @@ void Bin_Splitter(Int_t year=13,
   const Float_t PI=3.14159;
   Double_t phi_low=-1*PI;
   Double_t phi_high=PI;
-  Int_t phi_bins=1;
 
 
   // --- pseudorapidity
@@ -79,7 +85,6 @@ void Bin_Splitter(Int_t year=13,
 
   Double_t eta_low=2.65; // see one_bin.root for full eta distribution
   Double_t eta_high=3.9;
-  Int_t eta_bins=1;
 
   switch(whichEtaCut) {
     case kLarge: eta_high=eta_border; break;
@@ -101,7 +106,6 @@ void Bin_Splitter(Int_t year=13,
   };
   pt_low = 0; // OVERRIDE FOR DIAGNOSTICS PLOTS----------------------------------------------------------------------------------
   Double_t pt_high=10.0; // pi0 reconstruction is unreliable for pT>15
-  Int_t pt_bins=0;
 
 
   // --- energy
@@ -112,7 +116,6 @@ void Bin_Splitter(Int_t year=13,
     case kLarge: en_high=70; break;
     case kSmall: en_high=100; break;
   };
-  Int_t en_bins=1;
 
 
   /////////////////////////////////////

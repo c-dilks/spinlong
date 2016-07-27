@@ -64,6 +64,7 @@ class RunInfo : public TObject
     Int_t fill_pol,runnum_pol;
     Float_t b_pol,y_pol; // polarization
     Float_t b_pol_err,y_pol_err; // polarization uncertainty
+    Float_t b_pol_avg,y_pol_avg; // beam current-weighted fill-by-fill polarization
     Int_t pattern_no;
 
 
