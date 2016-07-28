@@ -237,7 +237,6 @@ Float_t RunInfo::BluePol(Int_t runnum0)
   if(idx>=0) {
     pol_tr->GetEntry(idx);
     return b_pol/100.0;
-    //return b_pol_avg/100.0;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::BluePol returning 0 for missing run %d\n",runnum0);
@@ -252,7 +251,6 @@ Float_t RunInfo::YellPol(Int_t runnum0)
   if(idx>=0) {
     pol_tr->GetEntry(idx);
     return y_pol/100.0;
-    //return y_pol_avg/100.0;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::YellPol returning 0 for missing run %d\n",runnum0);
