@@ -38,6 +38,7 @@ class RunInfo : public TObject
     Int_t YellSpin(Int_t runnum0, Int_t bXing);
     Bool_t Kicked(Int_t runnum0, Int_t bXing);
     Int_t Pattern(Int_t runnum0);
+    Double_t Luminosity(Int_t runnum0);
 
     Environ * env;
 
@@ -66,6 +67,8 @@ class RunInfo : public TObject
     Float_t b_pol_err,y_pol_err; // polarization uncertainty
     Float_t b_pol_avg,y_pol_avg; // beam current-weighted fill-by-fill polarization
     Int_t pattern_no;
+    Double_t b_pol_lw,y_pol_lw; // luminosity weighted average per-fill polarization
+    Double_t lumi_run,lumi_fill; // lumi per-run, per-fill
 
 
     // data arrays

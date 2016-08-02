@@ -73,7 +73,10 @@ RunInfo::RunInfo()
   //pol_tr->SetBranchAddress("y_pol_err",&y_pol_err);
   b_pol_err=0; // for now..
   y_pol_err=0; // for now..
-
+  pol_tr->SetBranchAddress("b_pol_lw",&b_pol_lw);
+  pol_tr->SetBranchAddress("y_pol_lw",&y_pol_lw);
+  pol_tr->SetBranchAddress("lumi_run",&lumi_run);
+  pol_tr->SetBranchAddress("lumi_fill",&lumi_fill);
 
 
   // build spin maps --> gives blue/yell spin + kicked status for 
@@ -344,6 +347,22 @@ Int_t RunInfo::Pattern(Int_t runnum0)
   }
   else {
     fprintf(stderr,"WARNING RunInfo::Pattern returning 0 for missing run %d\n",runnum0);
+    return 0;
+  };
+};
+
+
+
+// returns luminosity
+Double_t RunInfo::Luminosity(Int_t runnum0)
+{
+  idx = IndexPol(runnum0);
+  if(idx>=0) {
+    pol_tr->GetEntry(idx);
+    return lumi_run;
+  }
+  else {
+    fprintf(stderr,"WARNING: RunInfo::Luminosity returning 0 for missing run %d\n",runnum0);
     return 0;
   };
 };

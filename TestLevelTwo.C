@@ -1,4 +1,4 @@
-void TestLevelTwo(TString setn="080Ba") {
+void TestLevelTwo(TString setn="130Ca") {
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;

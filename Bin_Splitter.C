@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=13,
+void Bin_Splitter(Int_t year=12,
                   Int_t whichEtaCut=0)
 {
   // number of bins

@@ -1,7 +1,7 @@
 // compares A_LL given two files
 
-void CompareAsymForTwo(TString dir0="12_using_ave_pol",
-                       TString dir1="12_using_tdep_pol",
+void CompareAsymForTwo(TString dir0="13_using_lw_pol",
+                       TString dir1="13_using_tdep_pol",
                        TString classname="pi0"
 ) {
   TString filename[2];
@@ -35,6 +35,7 @@ void CompareAsymForTwo(TString dir0="12_using_ave_pol",
 
   TCanvas * c1 = new TCanvas("c1","c1",800,800);
   c1->Divide(1,2);
+  for(k=1;k<3;k++)c1->GetPad(k)->SetGrid(1,1);
   c1->cd(1);
   mg->Draw("APE");
   mg->GetXaxis()->SetLabelSize(0.08);
@@ -50,7 +51,7 @@ void CompareAsymForTwo(TString dir0="12_using_ave_pol",
   };
 
   diff->SetMarkerStyle(kFullCircle);
-  diff->SetMarkerColor(kRed);
+  diff->SetMarkerColor(kBlack);
   diff->SetTitle("red A_{LL} minus blue A_{LL}");
 
   c1->cd(2);
