@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=13,
+void Bin_Splitter(Int_t year=12,
                   Int_t whichEtaCut=0)
 {
   // number of bins
@@ -43,7 +43,7 @@ void Bin_Splitter(Int_t year=13,
   TString counts_file,rtree_file,pol_file,trigid_file;
   TString fmsrootdir;
   TString masscuts_file,exclusion_list;
-  TString output_dir,redset_dir,phiset_dir,diagset_dir;
+  TString output_dir,redset_dir,phiset_dir,diagset_dir,massset_dir;
   switch(year) {
     case 12:
       fmsrootdir = "/home/dilks/h4/"; //+++
@@ -63,6 +63,7 @@ void Bin_Splitter(Int_t year=13,
   redset_dir = fmsrootdir+"redset"; //+++
   phiset_dir = fmsrootdir+"phiset"; //+++
   diagset_dir = Form("diagset_%d",year);
+  diagset_dir = Form("massset_%d",year);
 
 
 
@@ -82,6 +83,10 @@ void Bin_Splitter(Int_t year=13,
   // --- pseudorapidity
   enum eta_case {kAll=0, kLarge, kSmall};
   Double_t eta_border = 3.28;
+  //Double_t eta_border = 3.13; // mass vs. eta shows two main mass peaks for two 
+                              // different regions of eta; this value 3.13
+                              // does cut into the large cells a bit, but separates
+                              // the two mass peaks better than 3.28
 
   Double_t eta_low=2.65; // see one_bin.root for full eta distribution
   Double_t eta_high=3.9;
@@ -144,6 +149,7 @@ void Bin_Splitter(Int_t year=13,
   printf("export REDSET_DIR=%s\n",redset_dir.Data());
   printf("export PHISET_DIR=%s\n",phiset_dir.Data());
   printf("export DIAGSET_DIR=%s\n",diagset_dir.Data());
+  printf("export MASSSET_DIR=%s\n",massset_dir.Data());
   printf("export MASSCUTS_FILE=%s\n",masscuts_file.Data());
   printf("export EXCLUSION_LIST=%s\n",exclusion_list.Data());
 

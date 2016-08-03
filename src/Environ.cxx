@@ -30,6 +30,7 @@ Environ::Environ()
   sscanf(gSystem->Getenv("REDSET_DIR"),"%s",redset_dir);
   sscanf(gSystem->Getenv("PHISET_DIR"),"%s",phiset_dir);
   sscanf(gSystem->Getenv("DIAGSET_DIR"),"%s",diagset_dir);
+  sscanf(gSystem->Getenv("MASSSET_DIR"),"%s",massset_dir);
 
   sscanf(gSystem->Getenv("WHICH_ETA_CUT"),"%d",&which_eta_cut);
 

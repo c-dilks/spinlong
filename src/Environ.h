@@ -30,6 +30,7 @@ class Environ : public TObject
     char redset_dir[512];
     char phiset_dir[512];
     char diagset_dir[512];
+    char massset_dir[512];
 
     Int_t which_eta_cut;
 

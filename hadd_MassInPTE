@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pushd $MASSSET_DIR
+touch all.root; rm all.root
+hadd all.root mass*.root
+popd
