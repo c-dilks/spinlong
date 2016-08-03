@@ -78,28 +78,29 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
   TString g_str, e_str, p_str;
 
   // define 2d hists
-  TH2D * mass_vs_en[N_TRIG];
-  TH2D * mass_vs_pt[N_TRIG];
+  TH2D * mass_vs_en[N_G][N_TRIG];
+  TH2D * mass_vs_pt[N_G][N_TRIG];
+  TH2D * pt_vs_en[N_G][N_TRIG];
   TH2D * mass_vs_eta[N_TRIG];
-  TH2D * pt_vs_en[N_TRIG];
 
-  TString  mass_vs_en_n[N_TRIG];
-  TString  mass_vs_pt_n[N_TRIG];
+  TString  mass_vs_en_n[N_G][N_TRIG];
+  TString  mass_vs_pt_n[N_G][N_TRIG];
+  TString  pt_vs_en_n[N_G][N_TRIG];
   TString  mass_vs_eta_n[N_TRIG];
-  TString  pt_vs_en_n[N_TRIG];
 
-  TString  mass_vs_en_t[N_TRIG];
-  TString  mass_vs_pt_t[N_TRIG];
+  TString  mass_vs_en_t[N_G][N_TRIG];
+  TString  mass_vs_pt_t[N_G][N_TRIG];
+  TString  pt_vs_en_t[N_G][N_TRIG];
   TString  mass_vs_eta_t[N_TRIG];
-  TString  pt_vs_en_t[N_TRIG];
 
-  TCanvas * mass_vs_en_canv[N_TRIG];
-  TCanvas * mass_vs_pt_canv[N_TRIG];
+  TCanvas * mass_vs_en_canv[N_G][N_TRIG];
+  TCanvas * mass_vs_pt_canv[N_G][N_TRIG];
+  TCanvas * pt_vs_en_canv[N_G][N_TRIG];
   TCanvas * mass_vs_eta_canv[N_TRIG];
-  TCanvas * pt_vs_en_canv[N_TRIG];
 
   // iterators
   Int_t t,g,e,p;
+
  
   // initialise distributions
   for(g=0; g<N_G; g++) {
@@ -130,30 +131,36 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
 
   // initialise 2d histograms
   for(t=0; t<N_TRIG; t++) {
-    mass_vs_en_n[t] = "mass_vs_en_"+LT->Name(t);
-    mass_vs_pt_n[t] = "mass_vs_pt_"+LT->Name(t);
+    for(g=0; g<N_G; g++) {
+      mass_vs_en_n[g][t] = Form("mass_vs_en_g%d_%s",g,(LT->Name(t)).Data());
+      mass_vs_pt_n[g][t] = Form("mass_vs_pt_g%d_%s",g,(LT->Name(t)).Data());
+      pt_vs_en_n[g][t] = Form("pt_vs_en_g%d_%s",g,(LT->Name(t)).Data());
+
+      mass_vs_en_t[g][t] = Form("M_{#gamma#gamma} vs E_{#gamma#gamma} :: #eta#in[%.2f,%.2f] :: %s triggers;E_{#gamma#gamma};M_{#gamma#gamma}",
+                                RD->env->EtaDiv(g),RD->env->EtaDiv(g+1),(LT->Name(t)).Data());
+      mass_vs_pt_t[g][t] = Form("M_{#gamma#gamma} vs p_{T} :: #eta#in[%.2f,%.2f] :: %s triggers;p_{T};M_{#gamma#gamma}",
+                                RD->env->EtaDiv(g),RD->env->EtaDiv(g+1),(LT->Name(t)).Data());
+      pt_vs_en_t[g][t] = Form("p_{T} vs E_{#gamma#gamma} :: #eta#in[%.2f,%.2f] :: %s triggers;E_{#gamma#gamma};p_{T}",
+                                RD->env->EtaDiv(g),RD->env->EtaDiv(g+1),(LT->Name(t)).Data());
+
+      mass_vs_en[g][t] = new TH2D(mass_vs_en_n[g][t].Data(),mass_vs_en_t[g][t].Data(),NBINS,E12_min,E12_max,NBINS,low_mass,high_mass);
+      mass_vs_pt[g][t] = new TH2D(mass_vs_pt_n[g][t].Data(),mass_vs_pt_t[g][t].Data(),NBINS,Pt_min,Pt_max,NBINS,low_mass,high_mass);
+      pt_vs_en[g][t] = new TH2D(pt_vs_en_n[g][t].Data(),pt_vs_en_t[g][t].Data(),NBINS,E12_min,E12_max,NBINS,Pt_min,Pt_max);
+
+      mass_vs_en_n[g][t] = mass_vs_en_n[g][t] + "_canv";
+      mass_vs_pt_n[g][t] = mass_vs_pt_n[g][t] + "_canv";
+      pt_vs_en_n[g][t] = pt_vs_en_n[g][t] + "_canv";
+
+      mass_vs_en_canv[g][t] = new TCanvas(mass_vs_en_n[g][t].Data(),mass_vs_en_n[g][t].Data(),800,800);
+      mass_vs_pt_canv[g][t] = new TCanvas(mass_vs_pt_n[g][t].Data(),mass_vs_pt_n[g][t].Data(),800,800);
+      pt_vs_en_canv[g][t] = new TCanvas(pt_vs_en_n[g][t].Data(),pt_vs_en_n[g][t].Data(),800,800);
+    };
+
     mass_vs_eta_n[t] = "mass_vs_eta_"+LT->Name(t);
-    pt_vs_en_n[t] = "pt_vs_en_"+LT->Name(t);
-
-    mass_vs_en_t[t] = "M_{#gamma#gamma} vs E_{#gamma#gamma} :: "+LT->Name(t)+" triggers;E_{#gamma#gamma};M_{#gamma#gamma}";
-    mass_vs_pt_t[t] = "M_{#gamma#gamma} vs p_{T} :: "+LT->Name(t)+" triggers;p_{T};M_{#gamma#gamma}";
     mass_vs_eta_t[t] = "M_{#gamma#gamma} vs #eta :: "+LT->Name(t)+" triggers;#eta;M_{#gamma#gamma}";
-    pt_vs_en_t[t] = "p_{T} vs E_{#gamma#gamma} :: "+LT->Name(t)+" triggers;E_{#gamma#gamma};p_{T}";
-
-    mass_vs_en[t] = new TH2D(mass_vs_en_n[t].Data(),mass_vs_en_t[t].Data(),NBINS,E12_min,E12_max,NBINS,low_mass,high_mass);
-    mass_vs_pt[t] = new TH2D(mass_vs_pt_n[t].Data(),mass_vs_pt_t[t].Data(),NBINS,Pt_min,Pt_max,NBINS,low_mass,high_mass);
     mass_vs_eta[t] = new TH2D(mass_vs_eta_n[t].Data(),mass_vs_eta_t[t].Data(),NBINS,Eta_min,Eta_max,NBINS,low_mass,high_mass);
-    pt_vs_en[t] = new TH2D(pt_vs_en_n[t].Data(),pt_vs_en_t[t].Data(),NBINS,E12_min,E12_max,NBINS,Pt_min,Pt_max);
-
-    mass_vs_en_n[t] = mass_vs_en_n[t] + "_canv";
-    mass_vs_pt_n[t] = mass_vs_pt_n[t] + "_canv";
     mass_vs_eta_n[t] = mass_vs_eta_n[t] + "_canv";
-    pt_vs_en_n[t] = pt_vs_en_n[t] + "_canv";
-
-    mass_vs_en_canv[t] = new TCanvas(mass_vs_en_n[t].Data(),mass_vs_en_n[t].Data(),800,800);
-    mass_vs_pt_canv[t] = new TCanvas(mass_vs_pt_n[t].Data(),mass_vs_pt_n[t].Data(),800,800);
     mass_vs_eta_canv[t] = new TCanvas(mass_vs_eta_n[t].Data(),mass_vs_eta_n[t].Data(),800,800);
-    pt_vs_en_canv[t] = new TCanvas(pt_vs_en_n[t].Data(),pt_vs_en_n[t].Data(),800,800);
   };
 
 
@@ -198,7 +205,7 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
   Int_t g_b,e_b,p_b;
 
   Int_t ENT = tr->GetEntries();
-  ENT = 100000; // uncomment to do a short loop for testing
+  //ENT = 100000; // uncomment to do a short loop for testing
   for(Int_t x=0; x<ENT; x++)
   {
     if((x%100000)==0) printf("filling histograms: %.2f%%\n",100*((Float_t)x)/((Float_t)ENT));
@@ -246,10 +253,10 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
               //printf("%d %d %d\n",g_b,e_b,p_b);
               if(g_b>=0 && e_b>=0 && p_b>=0) {
                 mass_dist[g_b][e_b][p_b][t]->Fill(M12);
-                mass_vs_en[t]->Fill(E12,M12);
-                mass_vs_pt[t]->Fill(Pt,M12);
+                mass_vs_en[g_b][t]->Fill(E12,M12);
+                mass_vs_pt[g_b][t]->Fill(Pt,M12);
+                pt_vs_en[g_b][t]->Fill(E12,Pt);
                 mass_vs_eta[t]->Fill(Eta,M12);
-                pt_vs_en[t]->Fill(E12,Pt);
               };
             };
           };
@@ -261,39 +268,39 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
 
   // draw 2d histograms with bin lines
   for(t=0; t<N_TRIG; t++) {
-    mass_vs_en_canv[t]->cd();
-    mass_vs_en[t]->Draw("colz");
-    for(int k=0; k<N_E-1; k++) en_line[k]->Draw();
+    for(g=0; g<N_G; g++) {
+      mass_vs_en_canv[g][t]->cd();
+      mass_vs_en[g][t]->Draw("colz");
+      for(int k=0; k<N_E-1; k++) en_line[k]->Draw();
 
-    mass_vs_pt_canv[t]->cd();
-    mass_vs_pt[t]->Draw("colz");
-    for(int k=0; k<N_P-1; k++) pt_line[k]->Draw();
+      mass_vs_pt_canv[g][t]->cd();
+      mass_vs_pt[g][t]->Draw("colz");
+      for(int k=0; k<N_P-1; k++) pt_line[k]->Draw();
+
+      pt_vs_en_canv[g][t]->cd();
+      pt_vs_en[g][t]->Draw("colz");
+      for(int ke=0; ke<N_E-1; ke++) en2_line[ke]->Draw();
+      for(int kp=0; kp<N_P-1; kp++) pt2_line[kp]->Draw();
+    };
 
     mass_vs_eta_canv[t]->cd();
     mass_vs_eta[t]->Draw("colz");
     for(int k=0; k<N_G-1; k++) eta_line[k]->Draw();
-
-    pt_vs_en_canv[t]->cd();
-    pt_vs_en[t]->Draw("colz");
-    for(int ke=0; ke<N_E-1; ke++) en2_line[ke]->Draw();
-    for(int kp=0; kp<N_P-1; kp++) pt2_line[kp]->Draw();
   };
-
-
 
 
   // build obj arrays for output
   TObjArray * mass_dist_arr[N_G][N_E][N_P]; 
-  TObjArray * mass_vs_en_arr = new TObjArray();
-  TObjArray * mass_vs_pt_arr = new TObjArray();
-  TObjArray * mass_vs_eta_arr = new TObjArray();
-  TObjArray * pt_vs_en_arr = new TObjArray();
+  TObjArray * mass_vs_en_arr[N_G];
+  TObjArray * mass_vs_pt_arr[N_G];
+  TObjArray * pt_vs_en_arr[N_G];
+  TObjArray * mass_vs_eta_arr;
 
   TString mass_dist_arr_n[N_G][N_E][N_P];
-  TString mass_vs_en_arr_n = "mass_vs_en_arr";
-  TString mass_vs_pt_arr_n = "mass_vs_pt_arr";
-  TString mass_vs_eta_arr_n = "mass_vs_eta_arr";
-  TString pt_vs_en_arr_n = "pt_vs_en_arr";
+  TString mass_vs_en_arr_n[N_G];
+  TString mass_vs_pt_arr_n[N_G];
+  TString pt_vs_en_arr_n[N_G];
+  TString mass_vs_eta_arr_n;
 
   for(g=0; g<N_G; g++) {
     for(e=0; e<N_E; e++) {
@@ -307,12 +314,24 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
     };
   };
 
-  for(t=0; t<N_TRIG; t++) {
-    mass_vs_en_arr->AddLast(mass_vs_en_canv[t]);
-    mass_vs_pt_arr->AddLast(mass_vs_pt_canv[t]);
-    mass_vs_eta_arr->AddLast(mass_vs_eta_canv[t]);
-    pt_vs_en_arr->AddLast(pt_vs_en_canv[t]);
+  mass_vs_eta_arr_n = "mass_vs_eta_arr";
+  mass_vs_eta_arr = new TObjArray();
+  for(g=0; g<N_G; g++) {
+    mass_vs_en_arr_n[g] = Form("mass_vs_en_arr_g%d",g);
+    mass_vs_pt_arr_n[g] = Form("mass_vs_pt_arr_g%d",g);
+    pt_vs_en_arr_n[g] = Form("pt_vs_en_arr_g%d",g);
+
+    mass_vs_en_arr[g] = new TObjArray();
+    mass_vs_pt_arr[g] = new TObjArray();
+    pt_vs_en_arr[g] = new TObjArray();
+
+    for(t=0; t<N_TRIG; t++) {
+      mass_vs_en_arr[g]->AddLast(mass_vs_en_canv[g][t]);
+      mass_vs_pt_arr[g]->AddLast(mass_vs_pt_canv[g][t]);
+      pt_vs_en_arr[g]->AddLast(pt_vs_en_canv[g][t]);
+    };
   };
+  for(t=0; t<N_TRIG; t++) mass_vs_eta_arr->AddLast(mass_vs_eta_canv[t]);
 
 
 
@@ -334,8 +353,8 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
     };
   };
 
-  mass_vs_en_arr->Write(mass_vs_en_arr_n,TObject::kSingleKey);
-  mass_vs_pt_arr->Write(mass_vs_pt_arr_n,TObject::kSingleKey);
+  for(g=0; g<N_G; g++) mass_vs_en_arr[g]->Write(mass_vs_en_arr_n[g],TObject::kSingleKey);
+  for(g=0; g<N_G; g++) mass_vs_pt_arr[g]->Write(mass_vs_pt_arr_n[g],TObject::kSingleKey);
+  for(g=0; g<N_G; g++) pt_vs_en_arr[g]->Write(pt_vs_en_arr_n[g],TObject::kSingleKey);
   mass_vs_eta_arr->Write(mass_vs_eta_arr_n,TObject::kSingleKey);
-  pt_vs_en_arr->Write(pt_vs_en_arr_n,TObject::kSingleKey);
 };
