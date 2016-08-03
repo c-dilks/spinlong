@@ -457,20 +457,22 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
           {
             if(LT->Fired(t))
             {
-              mass_dist[c][t]->Fill(M12);
-              mass_vs_en[c][t]->Fill(E12,M12);
-              mass_vs_pt[c][t]->Fill(Pt,M12);
-              mass_rdist[c][t][runcount]->Fill(M12);
-              // fill kinematic-dependent mass distributions for pions
-              if(c==ev->Idx("pi0"))
-              {
-                for(Int_t ee=0; ee<10; ee++)
+              if(ev->ValidWithoutMcut(c,t)) {
+                mass_dist[c][t]->Fill(M12);
+                mass_vs_en[c][t]->Fill(E12,M12);
+                mass_vs_pt[c][t]->Fill(Pt,M12);
+                mass_rdist[c][t][runcount]->Fill(M12);
+                // fill kinematic-dependent mass distributions for pions
+                if(c==ev->Idx("pi0"))
                 {
-                  if(E12>=(ee*10) && E12<((ee+1)*10)) mass_dist_for_enbin[t][ee]->Fill(M12);
-                };
-                for(Int_t pp=0; pp<10; pp++)
-                {
-                  if(Pt>=pp && Pt<(pp+1)) mass_dist_for_ptbin[t][pp]->Fill(M12);
+                  for(Int_t ee=0; ee<10; ee++)
+                  {
+                    if(E12>=(ee*10) && E12<((ee+1)*10)) mass_dist_for_enbin[t][ee]->Fill(M12);
+                  };
+                  for(Int_t pp=0; pp<10; pp++)
+                  {
+                    if(Pt>=pp && Pt<(pp+1)) mass_dist_for_ptbin[t][pp]->Fill(M12);
+                  };
                 };
               };
             };
@@ -484,10 +486,12 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
           {
             if(LT->Fired(t))
             {
-              z_vs_eta[c][t]->Fill(Eta,Z);
-              z_vs_phi[c][t]->Fill(Phi,Z);
-              z_dist[c][t]->Fill(Z);
-              z_rdist[c][t][runcount]->Fill(Z);
+              if(ev->ValidWithoutZcut(c,t)) {
+                z_vs_eta[c][t]->Fill(Eta,Z);
+                z_vs_phi[c][t]->Fill(Phi,Z);
+                z_dist[c][t]->Fill(Z);
+                z_rdist[c][t][runcount]->Fill(Z);
+              };
             };
           };
         };

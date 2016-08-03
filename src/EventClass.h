@@ -44,8 +44,8 @@ class EventClass : public TObject
     char * Title(Int_t idx);
     char * Title(char * name);
     Bool_t Valid(Int_t idx,Int_t trig_index=-1); // returns true if cuts pass
-    Bool_t ValidWithoutMcut(Int_t idx); // Valid(), but don't cut on mass
-    Bool_t ValidWithoutZcut(Int_t idx); // Valid(), but don't cut on Z
+    Bool_t ValidWithoutMcut(Int_t idx, Int_t trig_index=-1); // Valid(), but don't cut on mass
+    Bool_t ValidWithoutZcut(Int_t idx, Int_t trig_index=-1); // Valid(), but don't cut on Z
     Bool_t CheckMass(Float_t M12_);
     Bool_t FiducialGeom(Float_t Eta_,Float_t Phi_, Float_t Cd);
     Bool_t ExcludedRun(); // true if excluded

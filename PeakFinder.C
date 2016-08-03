@@ -20,7 +20,7 @@ void PeakFinder(Double_t sigma_ = 1,
   TFile * outfile = new TFile(outfile_n.Data(),"RECREATE");
   gStyle->SetOptStat(0);
 
-  // define looping vars
+  // define looping vars, etc. 
   Int_t i;
   TH2D * hh;
   TString hh_t,hh_n;

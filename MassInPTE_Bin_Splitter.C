@@ -1,4 +1,4 @@
-// defines binning that is needed in the analysis
+// defines binning that is needed in the MassInPTE sector of the analysis
 //
 // all the binning is controlled by the variables in the section CONTROL VARIABLES
 // -- low = lower bound
@@ -14,14 +14,14 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=13,
-                  Int_t whichEtaCut=0)
+void MassInPTE_Bin_Splitter(Int_t year=13,
+                            Int_t eta_bins = 0,
+                            Int_t pt_bins = 2,
+                            Int_t en_bins = 2
+                           )
 {
-  // number of bins
-  Int_t phi_bins = 1;
-  Int_t eta_bins = 1;
-  Int_t pt_bins = 0;
-  Int_t en_bins = 1;
+  Int_t phi_bins = 1; // (doesn't matter)
+  Bool_t whichEtaCut = 0; // (eta_bins=0 replaced this)
 
   // check if valid year
   if(!(year==12 || year==13)) {
@@ -126,7 +126,7 @@ void Bin_Splitter(Int_t year=13,
 
   // begin building env variables file
   char efile[64];
-  strcpy(efile,"env_bins.sh");
+  strcpy(efile,"massenv.sh");
 
   gSystem->RedirectOutput(efile,"w");
   printf("#!/bin/bash\n");
@@ -202,10 +202,11 @@ void Bin_Splitter(Int_t year=13,
   }
   else
   {
-    eta_bins=1;
+    eta_bins=2;
     printf("export ETA_BINS=%d\n",eta_bins);
     printf("export ETA_DIV_0=%f\n",eta_low);
-    printf("export ETA_DIV_1=%f\n",eta_high);
+    printf("export ETA_DIV_1=%f\n",eta_border);
+    printf("export ETA_DIV_2=%f\n",eta_high);
   };
 
 
@@ -338,5 +339,5 @@ void Bin_Splitter(Int_t year=13,
   sprintf(cat,".! cat %s",efile);
   printf("\n");
   gROOT->ProcessLine(cat);
-  printf("\n%s built; source it by executing\n. env_bins.sh\n",efile);
+  printf("\n%s built; source it by executing\n. massenv.sh\n",efile);
 };

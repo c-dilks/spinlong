@@ -1,6 +1,15 @@
-// determines $CUT_TYPE-dependent mass cuts 
+// determines $CUT_TYPE-dependent mass cuts; uses diagset_tight/all.root,
+// i.e., the mass distributions of pions cut using the run-dependent
+// pT cuts, which account for the trigger threshold increase, correlated
+// with the radiation damage accumulation; 
+//
+// --> useLooseCuts: if =true, just uses diagset/all.root (i.e., pT cuts
+//     are just those loaded in the environment, PT_LOW and PT_HIGH (which
+//     are probably quite loose, since we want to see full pT dists in 
+//     diagset/{all,setdep}.root to accurately determine pT thresholds)
+//
 
-void MassCutter(TString TriggerType="All")
+void MassCutter(TString TriggerType="FMSOR", Bool_t useLooseCuts=false)
 {
   // environment
   gSystem->Load("src/RunInfo.so");
@@ -20,8 +29,11 @@ void MassCutter(TString TriggerType="All")
 
 
   // load mass dists for each en bin
-  TString infile_n = Form("%s/all.root",RD->env->diagset_dir);
+  TString infile_n;
+  if(useLooseCuts) infile_n = Form("%s/all.root",RD->env->diagset_dir);
+  else infile_n = Form("%s_tight/all.root",RD->env->diagset_dir);
   TFile * infile = new TFile(infile_n.Data(),"READ");
+
   TObjArray * mdist_arr[10];
   TH1D  * mdist[10];
   char mdist_arr_n[10][64];
@@ -44,7 +56,7 @@ void MassCutter(TString TriggerType="All")
   Int_t mdist_max_bin[10];
   Int_t mdist_nbins[10];
   Double_t bc;
-  Double_t factor=0.2; // "factor"
+  Double_t factor=0.4; // "factor"
   Double_t ub[10];
   Double_t lb[10];
   Bool_t found;
@@ -142,5 +154,12 @@ void MassCutter(TString TriggerType="All")
     };
   };
   cc->Clear(); cc->Print("mass_cuts.pdf)","pdf");
+  
+  printf("\nmass_cuts.dat:\n------------------------\n");
   system("cat mass_cuts.dat");
+
+  printf("\nmass_cuts.dat and mass_cuts.pdf have been generated\n");
+  printf("-> if these are ok, overwrite current masscuts by executing\n");
+  printf("   mv mass_cuts.pdf $MASSCUTS_FILE\n");
+
 };

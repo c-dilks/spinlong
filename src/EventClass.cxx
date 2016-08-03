@@ -284,7 +284,7 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
                       N12list[clu],
                       0);
         // see if this cluster contains a pi0
-        //if(Valid(kPi0,trig_index)) {
+        //if(Valid(kPi0,trig_index)) 
         // see if this first cluster contains pi0 and second cluster is anything E>10 GeV
         if(Valid(kPi0,trig_index) || (picnt==1 && E12list[clu]>10.0)) {
           dipi_E12[picnt] = E12;
@@ -330,7 +330,7 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
 
 
 // checks Valid(), but ignores Mass cut
-Bool_t EventClass::ValidWithoutMcut(Int_t idx)
+Bool_t EventClass::ValidWithoutMcut(Int_t idx, Int_t trig_index)
 {
   Float_t M12_tmp = M12; // store M12 to tmp variable
   Bool_t boole;
@@ -338,19 +338,19 @@ Bool_t EventClass::ValidWithoutMcut(Int_t idx)
   if(idx==kPi0) M12 = pi0_mass;
   else if(idx==kEtm) M12 = etm_mass;
   /*else if(idx==kJps) M12 = jps_mass;*/
-  boole = Valid(idx);
+  boole = Valid(idx, trig_index);
   M12 = M12_tmp; // restore value of M12
   return boole;
 };
 
 
 // checks Valid(), but ignores Z cut
-Bool_t EventClass::ValidWithoutZcut(Int_t idx)
+Bool_t EventClass::ValidWithoutZcut(Int_t idx, Int_t trig_index)
 {
   Float_t Z_tmp = Z; // store Z to tmp variable
   Float_t boole;
   Z = 0; // set Z to optimal value
-  boole = Valid(idx);
+  boole = Valid(idx, trig_index);
   Z = Z_tmp; // restore value of Z
   return boole;
 };
