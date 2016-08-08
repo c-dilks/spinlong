@@ -4,3 +4,8 @@ pushd $MASSSET_DIR
 touch all.root; rm all.root
 hadd all.root mass*.root
 popd
+
+echo "executing PutLinesOnPlots.C..."
+root -b -q -l PutLinesOnPlots.C'("all.root")'
+
+echo "done!"

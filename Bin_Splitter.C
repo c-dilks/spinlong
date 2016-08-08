@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=12,
+void Bin_Splitter(Int_t year=13,
                   Int_t whichEtaCut=0)
 {
   // number of bins
@@ -63,7 +63,7 @@ void Bin_Splitter(Int_t year=12,
   redset_dir = fmsrootdir+"redset"; //+++
   phiset_dir = fmsrootdir+"phiset"; //+++
   diagset_dir = Form("diagset_%d",year);
-  diagset_dir = Form("massset_%d",year);
+  massset_dir = Form("massset_%d",year);
 
 
 

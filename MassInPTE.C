@@ -326,12 +326,12 @@ void MassInPTE(TString infile_name = "RedOutputset087Ba.root")
     pt_vs_en_arr[g] = new TObjArray();
 
     for(t=0; t<N_TRIG; t++) {
-      mass_vs_en_arr[g]->AddLast(mass_vs_en_canv[g][t]);
-      mass_vs_pt_arr[g]->AddLast(mass_vs_pt_canv[g][t]);
-      pt_vs_en_arr[g]->AddLast(pt_vs_en_canv[g][t]);
+      mass_vs_en_arr[g]->AddLast(mass_vs_en[g][t]);
+      mass_vs_pt_arr[g]->AddLast(mass_vs_pt[g][t]);
+      pt_vs_en_arr[g]->AddLast(pt_vs_en[g][t]);
     };
   };
-  for(t=0; t<N_TRIG; t++) mass_vs_eta_arr->AddLast(mass_vs_eta_canv[t]);
+  for(t=0; t<N_TRIG; t++) mass_vs_eta_arr->AddLast(mass_vs_eta[t]);
 
 
 
