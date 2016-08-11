@@ -30,7 +30,7 @@ void Purity(TString infile_n = "massset_12/all.root",
             Bool_t fitEta = false) {
   // open histogram
   TFile * infile = new TFile(infile_n.Data(),"READ");
-  TObjArray * arr = (TObjArray*) infile->Get("mass_dist_arr_g0_e0_p0");
+  TObjArray * arr = (TObjArray*) infile->Get("mass_dist_arr_g0_e1_p1");
   TH1D * h = (TH1D*) arr->At(1);
   ExeFit(h,polyOrder,fitEta);
   printf("#mu = %.4f GeV/c^{2}\n",mu);
@@ -49,6 +49,7 @@ void Purity(TString infile_n = "massset_12/all.root",
   printf("\n");
   printf("pion_purity = %.2f%%\n",100*pion_purity);
   printf("background_frac = %.2f%%\n",100*background_frac);
+  printf("sum = %.2f%%\n",100*(pion_purity+background_frac));
   printf("\n");
 
 };
@@ -177,8 +178,8 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
 
    
   // perform fit
-  mass.setRange("signal_range",fit_lb,fit_ub);
-  model.fitTo(massdist,Range("signal_range"));
+  mass.setRange("fit_range",fit_lb,fit_ub);
+  model.fitTo(massdist,Range("fit_range"));
 
 
   // build plot
@@ -249,6 +250,7 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   Double_t delta = alpha / TMath::Sqrt(1+(alpha*alpha));
   Double_t mean = mu + (sigma*delta);
   Double_t stdev = sigma * TMath::Sqrt(1-(delta*delta));
+  Double_t variance = stdev*stdev;
   sig_lb = mean - 3*stdev;
   sig_ub = mean + 3*stdev;
   Double_t sig_lb_bin = hh->FindBin(sig_lb);
@@ -256,51 +258,24 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
 
 
   // obtain pion purity within signal window
-  //mass.setRange("int_range",sig_lb,sig_ub);
-  mass.setRange("int_range",0.35,0.4);
+  mass.setRange("int_range",sig_lb,sig_ub);
+
   RooAbsReal * model_int_roo = model.createIntegral(mass,NormSet(mass),Range("int_range"));
   RooAbsReal * sig_int_roo = sig_skew.createIntegral(mass,NormSet(mass),Range("int_range"));
   RooAbsReal * bg_int_roo =  bg_cheb.createIntegral(mass,NormSet(mass),Range("int_range"));
+  
   Double_t model_int = model_int_roo->getVal();
   Double_t sig_int = sig_int_roo->getVal();
   Double_t bg_int = bg_int_roo->getVal();
-  model_int /= model.getNorm(mass);
-  sig_int /= sig_skew.getNorm(mass);
-  bg_int /= bg_cheb.getNorm(mass);
-  printf("model norm = %.2f\n",model.getNorm(mass));
-  printf("sig norm = %.2f\n",sig_skew.getNorm(mass));
-  printf("bg norm = %.2f\n",bg_cheb.getNorm(mass));
-  //for(int k=0; k<100; k++) printf("--> %s\n",plotframe->nameOf(k));
 
-  RooCurve * model_curve = plotframe->getCurve("model_Norm[mass]_Range[Full]_NormRange[Full]");
-  RooCurve * sig_curve = plotframe->getCurve("model_Norm[mass]_Comp[signal]_Range[Full]_NormRange[Full]");
-  RooCurve * bg_curve = plotframe->getCurve("model_Norm[mass]_Comp[background]_Range[Full]_NormRange[Full]");
-
-  Int_t point_lb = model_curve->findPoint(0.35);
-  Int_t point_ub = model_curve->findPoint(0.4);
-  printf("point_lb=%d point_ub=%d\n",point_lb,point_ub);
-
-  Double_t data_int = hh->Integral(sig_lb_bin,sig_ub_bin);
-  //Double_t model_int = model_curve->Integral(point_lb,point_ub);
-  //Double_t sig_int = sig_curve->Integral(point_lb,point_ub);
-  //Double_t bg_int = bg_curve->Integral(point_lb,point_ub);
-
-  printf("data_int -- %.4f\n",data_int);
   printf("model_int -- %.4f\n",model_int);
   printf("sig_int -- %.4f\n",sig_int);
   printf("bg_int -- %.4f\n",bg_int);
   printf("\n");
 
-  pion_purity = sig_int / model_int;
-  background_frac = bg_int / model_int;
+  pion_purity = frac.getVal() * sig_int / model_int;
+  background_frac = (1-frac.getVal()) * bg_int / model_int;
   
-  new TCanvas();
-  model_curve->Draw("A");
-  model_curve->GetHistogram()->Draw();
-
-
-  
-
 
 
   // tlines
@@ -324,9 +299,9 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   char txt[MAX_LINES][256];
   TLatex * ttxt[MAX_LINES];
   Int_t nt=0;
-  sprintf(txt[nt++],"#mu(#pi^{0}) = %.4f GeV/c^{2}",mu);
-  sprintf(txt[nt++],"#sigma(#pi^{0}) = %.4f GeV/c^{2}",sigma);
-  sprintf(txt[nt++],"#alpha(#pi^{0}) = %.4f",alpha);
+  sprintf(txt[nt++],"#mu = %.4f GeV/c^{2}",mu);
+  sprintf(txt[nt++],"#sigma = %.4f GeV/c^{2}",sigma);
+  sprintf(txt[nt++],"#alpha = %.4f",alpha);
   sprintf(txt[nt++],"");
   if(!pionOnly) {
     sprintf(txt[nt++],"#mu(#eta) = %.4f GeV/c^{2}",mu_eta);
@@ -337,6 +312,14 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   for(int i=0; i<chebOrder; i++) {
     sprintf(txt[nt++],"a_{%d} = %.4f",i,ch[i]);
   };
+  sprintf(txt[nt++],"");
+  sprintf(txt[nt++],"f = %.4f",frac.getVal());
+  sprintf(txt[nt++],"");
+  sprintf(txt[nt++],"signal: M_{#gamma#gamma}#in[%.3f, %.3f]",sig_lb,sig_ub);
+  sprintf(txt[nt++],"purity: F = %.2f%%  (bg @ %.2f%%)",pion_purity*100,background_frac*100);
+  sprintf(txt[nt++],"");
+  //sprintf(txt[nt++],"#chi^{2}/NDF=%.4f",plotframe->chiSquare(7));
+
 
 
 
@@ -357,7 +340,7 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
     canv->GetPad(2)->Range(0,0,1,1);
     Float_t pos=1-0.05;
     for(int k=0; k<nt; k++) {
-      ttxt[k] = new TLatex(0.03,pos-=0.05,txt[k]); 
+      ttxt[k] = new TLatex(0.03,pos-=0.06,txt[k]); 
       ttxt[k]->Draw();
     };
 };
