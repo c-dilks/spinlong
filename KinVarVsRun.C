@@ -2,7 +2,7 @@
 // of that variable for each run in a 2d histogram; plots are normalised
 // to equalise the scale
 
-void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
+void KinVarVsRun(char * var="Pt", char * chosen_trig="FMSOR")
 {
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();
@@ -95,6 +95,9 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
   Float_t threshold[N_CLASS][MAX_RUNS];
   Int_t trig_index = T->Index(TString(chosen_trig));
 
+  Bool_t rellum_consistent=false;
+  Float_t b_pol,y_pol;
+
 
   for(int c=0; c<N_CLASS; c++) {
     for(int r=0; r<MAX_RUNS; r++) {
@@ -110,42 +113,51 @@ void KinVarVsRun(char * var="Pt", char * chosen_trig="All")
     tc->GetEntry(i);
     T->runnum = runnum;
 
-    if(RD->RellumConsistent(runnum) && RD->BluePol(runnum)>0 && RD->YellPol(runnum)>0)
+    if(runnum!=runnum_tmp) {
+      rellum_consistent = RD->RellumConsistent(runnum);
+      b_pol = RD->BluePol(runnum);
+      y_pol = RD->YellPol(runnum);
+      exclude_run = ev->ExcludedRun();
+    }
+
+    if(rellum_consistent && b_pol>0 && y_pol>0 && !exclude_run);)
     {
       ev->SetKinematics(runnum,E12,Pt,Eta,Phi,M12,Z,N12,ClIndex);
-      if(!(ev->ExcludedRun()))
+      if(runnum!=runnum_tmp)
       {
-        if(runnum!=runnum_tmp)
+        if(runnum_tmp!=0) count++;
+        for(Int_t c=0; c<N_CLASS; c++)
         {
-          if(runnum_tmp!=0) count++;
-          for(Int_t c=0; c<N_CLASS; c++)
-          {
-            sprintf(h_name[c][count],"h_%d_%s",runnum,ev->Name(c));
-            h[c][count] = new TH1D(h_name[c][count],h_name[c][count],N_BINS,bin_low,bin_high);
-          };
-          printf("%s %d %d\n",var,count,runnum);
-          runnum_tmp = runnum;
-          run_idx[count] = RD->Index(runnum);
-          runnum_arr[count] = runnum;
-          max_idx = (run_idx[count]>max_idx) ? run_idx[count]:max_idx;
-          if(use_threshold) {
-            for(Int_t c=0; c<N_CLASS; c++) {
-              if(!strcmp(var,"Pt"))
-                threshold[c][run_idx[count]] = KB->PtThreshLow(run_idx[count],c,trig_index);
-              else if(!strcmp(var,"E12")) 
-                threshold[c][run_idx[count]] = KB->EnThreshLow(run_idx[count],c,trig_index);
+          sprintf(h_name[c][count],"h_%d_%s",runnum,ev->Name(c));
+          h[c][count] = new TH1D(h_name[c][count],h_name[c][count],N_BINS,bin_low,bin_high);
+        };
+        printf("%s %d %d\n",var,count,runnum);
+        runnum_tmp = runnum;
+        run_idx[count] = RD->Index(runnum);
+        runnum_arr[count] = runnum;
+        max_idx = (run_idx[count]>max_idx) ? run_idx[count]:max_idx;
+        if(use_threshold) {
+          for(Int_t c=0; c<N_CLASS; c++) {
+            if(!strcmp(var,"Pt"))
+              threshold[c][run_idx[count]] = KB->PtThreshLow(run_idx[count],c,trig_index);
+            else if(!strcmp(var,"E12")) 
+              threshold[c][run_idx[count]] = KB->EnThreshLow(run_idx[count],c,trig_index);
 
-              //if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
-            };
+            //if(c==1) printf("%d %d %f\n",runnum,run_idx[count],threshold[c][run_idx[count]]);
           };
         };
+      }; // eo if runnum!=run_tmp
+
+      // first check if trigger fired, since it's faster
+      if(T->Fired(TString(chosen_trig))) {
         for(Int_t c=0; c<N_CLASS; c++)
         {
           if(c==ev->Idx("dpi")) continue;
           // use "loose" version of EventClass::Valid because we want to use this program
           // to look at drifting trigger thresholds etc. 
-          if(ev->Valid(c) && T->Fired(TString(chosen_trig)))
-            h[c][count]->Fill(*kinvar);
+
+          // check if kinematics are valid
+          if(ev->Valid(c)) h[c][count]->Fill(*kinvar);
         };
       };
     };
