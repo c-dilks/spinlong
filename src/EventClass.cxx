@@ -4,13 +4,14 @@ ClassImp(EventClass)
 
 namespace
 {
-  const Int_t N_CLASS = 4;
+  const Int_t N_CLASS = 5; // (one less than enumerator to disable dpi in loops)
   enum class_enum
   {
     kSph,
     kPi0,
     kThr,
     kEtm,
+    kBkg,
     kDpi
   };
 
@@ -35,6 +36,7 @@ EventClass::EventClass(Environ * env0, Bool_t DoNotInitKinBounds)
   class_name.insert(std::pair<Int_t,char*>(kPi0,"pi0")); // pi0's
   class_name.insert(std::pair<Int_t,char*>(kThr,"thr")); // three or more photons
   class_name.insert(std::pair<Int_t,char*>(kEtm,"etm")); // eta's
+  class_name.insert(std::pair<Int_t,char*>(kBkg,"bkg")); // sideband background
   class_name.insert(std::pair<Int_t,char*>(kDpi,"dpi")); // di-pi0's
 
   // event class titles
@@ -42,6 +44,7 @@ EventClass::EventClass(Environ * env0, Bool_t DoNotInitKinBounds)
   class_title.insert(std::pair<Int_t,char*>(kPi0,"#pi^{0}")); // pi0's
   class_title.insert(std::pair<Int_t,char*>(kThr,"N_{#gamma}>2")); // three or more photons
   class_title.insert(std::pair<Int_t,char*>(kEtm,"#eta-meson")); // eta's
+  class_title.insert(std::pair<Int_t,char*>(kBkg,"background")); // sideband background
   class_title.insert(std::pair<Int_t,char*>(kDpi,"di-#pi{0}")); // di-pi0's
 
   // event class index from name
@@ -51,14 +54,17 @@ EventClass::EventClass(Environ * env0, Bool_t DoNotInitKinBounds)
   // read kinematic-dependent mass cuts
   env = env0;
   mass_tr = new TTree();
-  char mass_tr_file[512];
-  sprintf(mass_tr_file,"%s/mass_cuts.dat",env->SpinDir);
-  mass_tr->ReadFile(env->MassCutsFile,"kbinL/F:kbinH/F:massL/F:massM/F:massH/F");
-  mass_tr->SetBranchAddress("kbinL",&kbinL);
-  mass_tr->SetBranchAddress("kbinH",&kbinH);
+  mass_tr->ReadFile(env->MassCutsFile,"EtaL/F:EtaH/F:E12L/F:E12H/F:PtL/F:PtH/F:massL/F:massM/F:massH/F:purity/F");
+  mass_tr->SetBranchAddress("EtaL",&EtaL);
+  mass_tr->SetBranchAddress("EtaH",&EtaH);
+  mass_tr->SetBranchAddress("E12L",&E12L);
+  mass_tr->SetBranchAddress("E12H",&E12H);
+  mass_tr->SetBranchAddress("PtL",&PtL);
+  mass_tr->SetBranchAddress("PtH",&PtH);
   mass_tr->SetBranchAddress("massL",&massL);
   mass_tr->SetBranchAddress("massM",&massM);
   mass_tr->SetBranchAddress("massH",&massH);
+  mass_tr->SetBranchAddress("purity",&purity);
 
   // import exclusion list
   exclude_tr = new TTree();
@@ -233,6 +239,17 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
         /*Pt>1*/ ) validity = true;
   }
 
+  // sideband background cuts
+  else if(idx==kBkg) 
+  {
+    if( fabs(N12-2)<0.1 &&
+        ClIndex==0 &&
+        Z<0.8 &&
+        CheckMassBG(M12) /*&&*/
+        /*E12>10 &&*/
+        /*Pt>1*/ ) validity = true;
+  }
+
   // three or more photons cuts
   else if(idx==kThr)
   {
@@ -252,6 +269,7 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
         /*E12>10 &&*/
         /*Pt>1*/ ) validity = true;
   }
+
 
   // j/psi cuts
   /*
@@ -307,7 +325,7 @@ Bool_t EventClass::Valid(Int_t idx, Int_t trig_index)
       validity = true;
     };
     RecallKinematics();
-  };
+  }; // eo if idx==kDpi
    
    // ------ //
 
@@ -362,9 +380,39 @@ Bool_t EventClass::CheckMass(Float_t M12_)
   for(Int_t q=0; q<mass_tr->GetEntries(); q++)
   {
     mass_tr->GetEntry(q);
-    if( (M12>=massL && M12<=massH) &&
-        ( (!strcmp(env->MassCutType,"en") && E12>=kbinL && E12<=kbinH) ||
-          (!strcmp(env->MassCutType,"pt") && Pt>=kbinL && Pt<=kbinH) )) return true;
+
+    if(Eta>=EtaL && Eta<=EtaH) {
+      if(E12>=E12L && E12<=E12H) {
+        if(Pt>=PtL && Pt<=PtH) {
+          if(M12_>=massL && M12_<=massH) {
+            return true;
+          };
+        };
+      };
+    };
+  };
+  return false;
+};
+
+
+// check if mass is in acceptable sideband region
+Bool_t EventClass::CheckMassBG(Float_t M12_)
+{
+  Float_t SB_ub = 0.5; // upper bound of sideband (lower bound set by massH)
+
+  for(Int_t q=0; q<mass_tr->GetEntries(); q++)
+  {
+    mass_tr->GetEntry(q);
+
+    if(Eta>=EtaL && Eta<=EtaH) {
+      if(E12>=E12L && E12<=E12H) {
+        if(Pt>=PtL && Pt<=PtH) {
+          if(M12_>=massH && M12_<=SB_ub) {
+            return true;
+          };
+        };
+      };
+    };
   };
   return false;
 };

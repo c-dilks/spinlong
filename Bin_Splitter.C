@@ -14,8 +14,8 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void Bin_Splitter(Int_t year=13,
-                  Int_t whichEtaCut=0)
+void Bin_Splitter(Int_t year=12,
+                  Int_t whichEtaCut=1)
 {
   // number of bins
   Int_t phi_bins = 1;
@@ -57,13 +57,13 @@ void Bin_Splitter(Int_t year=13,
       break;
   };
   pol_file = Form("/home/dilks/polarLUT/pol_%d.root",year); //+++
-  masscuts_file = Form("mass_cuts_%d.dat",year);;
   exclusion_list = "exclusion_list";
   output_dir = fmsrootdir+"Output"; //+++
   redset_dir = fmsrootdir+"redset"; //+++
   phiset_dir = fmsrootdir+"phiset"; //+++
   diagset_dir = Form("diagset_%d",year);
   massset_dir = Form("massset_%d",year);
+  masscuts_file = massset_dir+"/mass_cuts.dat";
 
 
 
@@ -82,11 +82,12 @@ void Bin_Splitter(Int_t year=13,
 
   // --- pseudorapidity
   enum eta_case {kAll=0, kLarge, kSmall};
-  Double_t eta_border = 3.28;
-  //Double_t eta_border = 3.13; // mass vs. eta shows two main mass peaks for two 
-                              // different regions of eta; this value 3.13
-                              // does cut into the large cells a bit, but separates
-                              // the two mass peaks better than 3.28
+  Double_t eta_border;
+  switch(year) {
+    case 12: eta_border = 3.13; break;
+    case 13: eta_border = 3.3; break;
+  };
+
 
   Double_t eta_low=2.65; // see one_bin.root for full eta distribution
   Double_t eta_high=3.9;
@@ -105,9 +106,14 @@ void Bin_Splitter(Int_t year=13,
                              */
   // set to run 13 values; run 12 has "hard kin. cutoff override"
   switch(whichEtaCut) {
+    /*
     case kAll: pt_low=2.0; break;
     case kLarge: pt_low=3.25; break;
     case kSmall: pt_low=2.2; break;
+    */
+    case kAll: pt_low=1.0; break;
+    case kLarge: pt_low=1.0; break;
+    case kSmall: pt_low=1.0; break;
   };
   pt_low = 0; // OVERRIDE FOR DIAGNOSTICS PLOTS----------------------------------------------------------------------------------
   Double_t pt_high=10.0; // pi0 reconstruction is unreliable for pT>15

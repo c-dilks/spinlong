@@ -16,8 +16,8 @@
 
 void MassInPTE_Bin_Splitter(Int_t year=12,
                             Int_t eta_bins = 0,
-                            Int_t pt_bins = 2,
-                            Int_t en_bins = 2
+                            Int_t pt_bins = 1,
+                            Int_t en_bins = 0
                            )
 {
   Int_t phi_bins = 1; // (doesn't matter)
@@ -57,13 +57,13 @@ void MassInPTE_Bin_Splitter(Int_t year=12,
       break;
   };
   pol_file = Form("/home/dilks/polarLUT/pol_%d.root",year); //+++
-  masscuts_file = Form("mass_cuts_%d.dat",year);;
   exclusion_list = "exclusion_list";
   output_dir = fmsrootdir+"Output"; //+++
   redset_dir = fmsrootdir+"redset"; //+++
   phiset_dir = fmsrootdir+"phiset"; //+++
   diagset_dir = Form("diagset_%d",year);
   massset_dir = Form("massset_%d",year);
+  masscuts_file = massset_dir+"/mass_cuts.dat";
 
 
 
@@ -82,11 +82,11 @@ void MassInPTE_Bin_Splitter(Int_t year=12,
 
   // --- pseudorapidity
   enum eta_case {kAll=0, kLarge, kSmall};
-  //Double_t eta_border = 3.28;
-  Double_t eta_border = 3.13; // mass vs. eta shows two main mass peaks for two 
-                              // different regions of eta; this value 3.13
-                              // does cut into the large cells a bit, but separates
-                              // the two mass peaks better than 3.28
+  Double_t eta_border;
+  switch(year) {
+    case 12: eta_border = 3.13; break;
+    case 13: eta_border = 3.3; break;
+  };
 
   Double_t eta_low=2.65; // see one_bin.root for full eta distribution
   Double_t eta_high=3.9;

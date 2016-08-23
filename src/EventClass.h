@@ -47,6 +47,7 @@ class EventClass : public TObject
     Bool_t ValidWithoutMcut(Int_t idx, Int_t trig_index=-1); // Valid(), but don't cut on mass
     Bool_t ValidWithoutZcut(Int_t idx, Int_t trig_index=-1); // Valid(), but don't cut on Z
     Bool_t CheckMass(Float_t M12_);
+    Bool_t CheckMassBG(Float_t M12_);
     Bool_t FiducialGeom(Float_t Eta_,Float_t Phi_, Float_t Cd);
     Bool_t ExcludedRun(); // true if excluded
     Bool_t DiPi0();
@@ -86,7 +87,7 @@ class EventClass : public TObject
     Environ * env;
     KinBounds * KB;
     TTree * mass_tr;
-    Float_t kbinL,kbinH,massL,massM,massH;
+    Float_t EtaL,EtaH,E12L,E12H,PtL,PtH,massL,massM,massH,purity;
     TTree * exclude_tr;
     Int_t exc_run;
 
