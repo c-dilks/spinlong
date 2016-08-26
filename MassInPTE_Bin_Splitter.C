@@ -14,7 +14,7 @@
 //  - year = 12 or 13 for run12 or run13 (later figure out how to merge these)
 //  - whichEtaCut = 0-all  1-large  2-small
 
-void MassInPTE_Bin_Splitter(Int_t year=12,
+void MassInPTE_Bin_Splitter(Int_t year=13,
                             Int_t eta_bins = 0,
                             Int_t pt_bins = 1,
                             Int_t en_bins = 0

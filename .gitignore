@@ -41,3 +41,4 @@ kinvarset/*
 kinvarset*/*
 diag_plots/*
 diag_plots*/*
+massset_*/**/*.pdf

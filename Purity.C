@@ -140,6 +140,14 @@ TCanvas * ExeFit(TH1D * hh,
   Float_t draw_lb; // drawing range
   Float_t draw_ub; // drawing range
   switch(binhash) {
+    case 0x010:
+      fit_lb = 0.1;
+      fit_ub = 0.6;
+      mass_lb = MASS_LB_DEF;
+      mass_ub = MASS_UB_DEF;
+      draw_lb = 0.05;
+      draw_ub = 0.8;
+      break;
     default:
       if(pionOnly) {
         fit_lb = 0.1;
@@ -147,7 +155,7 @@ TCanvas * ExeFit(TH1D * hh,
         mass_lb = MASS_LB_DEF;
         mass_ub = MASS_UB_DEF;
         draw_lb = 0.05;
-        draw_ub = 0.8;
+        draw_ub = 0.5;
       } else {
         fit_lb = 0.1;
         fit_ub = 0.7;
@@ -174,6 +182,11 @@ TCanvas * ExeFit(TH1D * hh,
       RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
       RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
       break;
+    case 0x010:
+      RooRealVar s0("s0","pion_mu",0.17,0.1,0.3);
+      RooRealVar s1("s1","pion_sigma",0.06,0.001,0.2);
+      RooRealVar s2("s2","pion_alpha",3.3,1.0,10.0);
+      break;
     default:
       RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
       RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
@@ -198,8 +211,75 @@ TCanvas * ExeFit(TH1D * hh,
 
 
   // BACKGROUND FIT MODELS ::::::::::::::::::::::::::::::::::::::::::::::::::
+  TString formu_bg = "";
+  
+  // manually entered chebychev polynomials 
+  // (for more easily controlling parameter constraints)
+  /*
+  Float_t b_lb = -50.0; // default upper bound
+  Float_t b_ub = 50.0; // default lower bound
+  switch(binhash) {
+    case 0x000:
+      RooRealVar b0("b0","b0", 6.0, b_lb, b_ub); // (not used)
+      RooRealVar b1("b1","b1", -20, b_lb, b_ub);
+      RooRealVar b2("b2","b2", 20, b_lb, b_ub);
+      RooRealVar b3("b3","b3", b_lb, b_ub);
+      RooRealVar b4("b4","b4", b_lb, b_ub);
+      break;
+    default:
+      RooRealVar b0("b0","b0", b_lb, b_ub); // (not used)
+      RooRealVar b1("b1","b1", b_lb, b_ub);
+      RooRealVar b2("b2","b2", b_lb, b_ub);
+      RooRealVar b3("b3","b3", b_lb, b_ub);
+      RooRealVar b4("b4","b4", b_lb, b_ub);
+  };
 
-  // chebychev polynomials
+  TString cheb[5];
+  cheb[0]="1"; // 1
+  cheb[1]="mass"; // m
+  cheb[2]="(2*TMath::Power(mass,2)-1)"; // 2m^2 - 1
+  cheb[3]="(4*TMath::Power(mass,3)-3*mass)"; // 4m^3 - 3m
+  cheb[4]="(8*TMath::Power(mass,4)-8*TMath::Power(mass,2)+1)"; // 8m^4 - 8m^2 +1
+  if(chebOrder>0) {
+    // zeroth term has coefficient constrained by other coefficients to
+    // ensure that the background is zero at zero mass
+    if(chebOrder==3 || chebOrder==4) formu_bg = "b2";
+    else if(chebOrder==5) formu_bg = "(b2-b4)";
+    else formu_bg = "0";
+    formu_bg = "b0"; // OVERRIDE
+    for(int co=1; co<chebOrder; co++) {
+      formu_bg = Form("%s+b%d*%s",formu_bg.Data(),co,cheb[co].Data());
+    };
+
+    switch(chebOrder) {
+      case 2:
+       RooGenericPdf bg_func("background","bg_func",
+                             //formu_bg.Data(),RooArgList(mass,b1));
+                             formu_bg.Data(),RooArgList(mass,b0,b1));
+       break;
+      case 3:
+       RooGenericPdf bg_func("background","bg_func",
+                             //formu_bg.Data(),RooArgList(mass,b1,b2));
+                             formu_bg.Data(),RooArgList(mass,b0,b1,b2));
+       break;
+      case 4:
+       RooGenericPdf bg_func("background","bg_func",
+                             //formu_bg.Data(),RooArgList(mass,b1,b2,b3));
+                             formu_bg.Data(),RooArgList(mass,b0,b1,b2,b3));
+       break;
+      case 5:
+       RooGenericPdf bg_func("background","bg_func",
+                             //formu_bg.Data(),RooArgList(mass,b1,b2,b3,b4));
+                             formu_bg.Data(),RooArgList(mass,b0,b1,b2,b3,b4));
+       break;
+      default:
+       return;
+    };
+  }
+  */
+
+  ///*
+  // ROOfit chebychev polynomials
   Float_t b_lb = -50.0; // default upper bound
   Float_t b_ub = 50.0; // default lower bound
   switch(binhash) {
@@ -234,7 +314,9 @@ TCanvas * ExeFit(TH1D * hh,
       default:
        return;
     };
-  } else {
+  } 
+  //*/
+  else {
     // argus function
     RooRealVar arg_m("arg_m","arg_m", 1.2, 0.8, 2);
     RooRealVar arg_c("arg_c","arg_c", -50, -100, 0);
@@ -451,6 +533,8 @@ TCanvas * ExeFit(TH1D * hh,
       ttxt[k] = new TLatex(0.03,pos-=0.04,txt[k]); 
       ttxt[k]->Draw();
     };
+
+   printf("\nformu_bg = %s\n",formu_bg.Data());
 
   return canv;
 };

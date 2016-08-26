@@ -24,22 +24,57 @@ Double_t mu,sigma,alpha;
 Double_t mu_eta,sigma_eta,alpha_eta;
 Double_t ch[10];
 Double_t pion_purity,background_frac;
+Double_t massL,massM,massH;
 
-void Purity(TString infile_n = "massset_12/all.root",
+// polyOrder is the order of chebychev polynomial for BG
+// if polyOrder < 0, we use other trial fit function for BG
+// if fitEta = true, attempts to fit skewed gaussian to eta peak as well
+
+void Purity(Int_t eta_bin = 0,
+            Int_t en_bin = 0,
+            Int_t pt_bin = 0,
             Int_t polyOrder = 5,
-            Bool_t fitEta = false) {
+            Bool_t fitEta = false,
+            TString infile_n = "massset_12/all.root") {
+  // load libraries
+  gSystem->Load("src/RunInfo.so");
+  RunInfo * RD = new RunInfo();
+  if(!(RD->env->success)) return;
+
+
+  // load bin information
+  Float_t eta_lb = RD->env->EtaDiv(eta_bin);
+  Float_t eta_ub = RD->env->EtaDiv(eta_bin+1);
+  Float_t en_lb = RD->env->EnDiv(en_bin);
+  Float_t en_ub = RD->env->EnDiv(en_bin+1);
+  Float_t pt_lb = RD->env->PtDiv(pt_bin);
+  Float_t pt_ub = RD->env->PtDiv(pt_bin+1);
+
+
   // open histogram
   TFile * infile = new TFile(infile_n.Data(),"READ");
-  TObjArray * arr = (TObjArray*) infile->Get("mass_dist_arr_g0_e1_p0");
+  TString arrname = Form("mass_dist_arr_g%d_e%d_p%d",eta_bin,en_bin,pt_bin);
+  TObjArray * arr = (TObjArray*) infile->Get(arrname.Data());
   TH1D * h = (TH1D*) arr->At(1);
-  ExeFit(h,polyOrder,fitEta);
-  printf("#mu = %.4f GeV/c^{2}\n",mu);
-  printf("#sigma = %.4f GeV/c^{2}\n",sigma);
+
+  // execute fit algo
+  Int_t hash = 0x100*eta_bin + 0x10*en_bin + pt_bin;
+  TCanvas * fitcanv = ExeFit(h,polyOrder,fitEta,hash); 
+
+
+  // print stats
+  printf("\n::::::::::::::::::::::::::\n");
+  printf("%.2f <= eta%d < %.2f\n",eta_lb,eta_bin,eta_ub);
+  printf("%.2f <= en%d < %.2f\n",en_lb,en_bin,en_ub);
+  printf("%.2f <= pt%d < %.2f\n",pt_lb,pt_bin,pt_ub);
+  printf("::::::::::::::::::::::::::\n\n");
+  printf("#mu = %.4f GeV\n",mu);
+  printf("#sigma = %.4f GeV\n",sigma);
   printf("#alpha = %.4f\n",alpha);
   if(fitEta) {
     printf("\n");
-    printf("#mu(#eta) = %.4f GeV/c^{2}\n",mu_eta);
-    printf("#sigma(#eta) = %.4f GeV/c^{2}\n",sigma_eta);
+    printf("#mu(#eta) = %.4f GeV\n",mu_eta);
+    printf("#sigma(#eta) = %.4f GeV\n",sigma_eta);
     printf("#alpha(#eta) = %.4f\n",alpha_eta);
   };
   printf("\n");
@@ -50,51 +85,100 @@ void Purity(TString infile_n = "massset_12/all.root",
   printf("pion_purity = %.2f%%\n",100*pion_purity);
   printf("background_frac = %.2f%%\n",100*background_frac);
   printf("sum = %.2f%%\n",100*(pion_purity+background_frac));
+  printf("\n\nbinhash = 0x%03X\n\n",hash);
   printf("\n");
+
+  // output mass cuts
+  TString statsfile = Form("%s/stat_g%d_e%d_p%d.dat",RD->env->massset_dir,eta_bin,en_bin,pt_bin);
+  gSystem->RedirectOutput(statsfile.Data(),"w");
+  printf("%f %f %f %f %f %f %f %f %f %f\n",
+    eta_lb, eta_ub,
+    en_lb, en_ub,
+    pt_lb, pt_ub,
+    massL,
+    massM,
+    massH,
+    pion_purity
+  );
+  gSystem->RedirectOutput(0);
+
+
+  // print canvas
+  TString pdffile = Form("%s/canv_g%d_e%d_p%d.pdf",RD->env->massset_dir,eta_bin,en_bin,pt_bin);
+  fitcanv->Print(pdffile.Data(),"pdf");
 
 };
 
-void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
+
+
+TCanvas * ExeFit(TH1D * hh, 
+                 Int_t polyOrder_, 
+                 Bool_t fitEta_,
+                 Int_t binhash_) {
+  // don't fit empty histogram
   if(hh==NULL) { 
     fprintf("ERROR: hh = %p\n",(void*)hh);
     return;
   };
 
+
+  // control vars
   Int_t chebOrder = polyOrder_;
   Bool_t pionOnly = !fitEta_;
+  Int_t binhash = binhash_; // 3 hex-digits 0x[eta_bin][en_bin][pt_bin]
+  
 
   // pion mass, bounds, and ranges for fit and draw
   const Float_t PION_MASS = 0.135;
   const Float_t ETA_MASS = 0.548;
-  const Float_t MASS_LB = 0;
-  const Float_t MASS_UB = 1;
+  const Float_t MASS_LB_DEF = 0;
+  const Float_t MASS_UB_DEF = 1;
   Float_t fit_lb; // fit range
   Float_t fit_ub; // fit range
+  Float_t mass_lb; // mass dist lower bound
+  Float_t mass_ub; // mass dist upper bound
   Float_t draw_lb; // drawing range
   Float_t draw_ub; // drawing range
-  if(pionOnly) {
-    fit_lb = 0.1;
-    fit_ub = 0.5;
-    draw_lb = 0.05;
-    draw_ub = 0.5;
-  } else {
-    fit_lb = 0.1;
-    fit_ub = 0.7;
-    draw_lb = 0.05;
-    draw_ub = 1;
+  switch(binhash) {
+    default:
+      if(pionOnly) {
+        fit_lb = 0.1;
+        fit_ub = 0.5;
+        mass_lb = MASS_LB_DEF;
+        mass_ub = MASS_UB_DEF;
+        draw_lb = 0.05;
+        draw_ub = 0.8;
+      } else {
+        fit_lb = 0.1;
+        fit_ub = 0.7;
+        mass_lb = MASS_LB_DEF;
+        mass_ub = MASS_UB_DEF;
+        draw_lb = 0.05;
+        draw_ub = 1;
+      };
   };
+
+
   // mass distribution
   TString hh_t = TString(hh->GetTitle());
-  RooRealVar mass("mass","M_{#gamma#gamma}",PION_MASS,MASS_LB,MASS_UB,"GeV/c^{2}");
+  RooRealVar mass("mass","M_{#gamma#gamma}",PION_MASS,mass_lb,mass_ub,"GeV/c^{2}");
   RooDataHist massdist("massdist",hh_t.Data(),mass,Import(*hh));
 
 
   // SIGNAL FIT MODELS :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   // pi0
-  RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
-  RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
-  RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+  switch(binhash) {
+    case 0x000:
+      RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
+      RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
+      RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+      break;
+    default:
+      RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
+      RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
+      RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+  };
   TString formu_gaus = "TMath::Gaus((mass-s0)/s1,0,1)";
   TString formu_skew = "(1+TMath::Erf((1/TMath::Sqrt(2))*s2*((mass-s0)/s1)))";
   TString formu = formu_gaus+"*"+formu_skew;
@@ -116,61 +200,67 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   // BACKGROUND FIT MODELS ::::::::::::::::::::::::::::::::::::::::::::::::::
 
   // chebychev polynomials
-  Float_t b_lb = -50.0;
-  Float_t b_ub = 50.0;
-  RooRealVar b0("b0","b0", 6.0, b_lb, b_ub);
-  RooRealVar b1("b1","b1", -20, b_lb, b_ub);
-  RooRealVar b2("b2","b2", 20, b_lb, b_ub);
-  RooRealVar b3("b3","b3", b_lb, b_ub);
-  RooRealVar b4("b4","b4", b_lb, b_ub);
-  switch(chebOrder) {
-    case 2:
-     RooChebychev bg_cheb("background","bg_cheb",mass,RooArgSet(b0,b1));
-     break;
-    case 3:
-     RooChebychev bg_cheb("background","bg_cheb",mass,RooArgSet(b0,b1,b2));
-     break;
-    case 4:
-     RooChebychev bg_cheb("background","bg_cheb",mass,RooArgSet(b0,b1,b2,b3));
-     break;
-    case 5:
-     RooChebychev bg_cheb("background","bg_cheb",mass,RooArgSet(b0,b1,b2,b3,b4));
-     break;
+  Float_t b_lb = -50.0; // default upper bound
+  Float_t b_ub = 50.0; // default lower bound
+  switch(binhash) {
+    case 0x000:
+      RooRealVar b0("b0","b0", 6.0, b_lb, b_ub);
+      RooRealVar b1("b1","b1", -20, b_lb, b_ub);
+      RooRealVar b2("b2","b2", 20, b_lb, b_ub);
+      RooRealVar b3("b3","b3", b_lb, b_ub);
+      RooRealVar b4("b4","b4", b_lb, b_ub);
+      break;
     default:
-     fprintf(stderr,"undefined chebychev order\n");
-     return;
-     break;
+      RooRealVar b0("b0","b0", b_lb, b_ub);
+      RooRealVar b1("b1","b1", b_lb, b_ub);
+      RooRealVar b2("b2","b2", b_lb, b_ub);
+      RooRealVar b3("b3","b3", b_lb, b_ub);
+      RooRealVar b4("b4","b4", b_lb, b_ub);
+  };
+  if(chebOrder>0) {
+    switch(chebOrder) {
+      case 2:
+       RooChebychev bg_func("background","bg_func",mass,RooArgSet(b0,b1));
+       break;
+      case 3:
+       RooChebychev bg_func("background","bg_func",mass,RooArgSet(b0,b1,b2));
+       break;
+      case 4:
+       RooChebychev bg_func("background","bg_func",mass,RooArgSet(b0,b1,b2,b3));
+       break;
+      case 5:
+       RooChebychev bg_func("background","bg_func",mass,RooArgSet(b0,b1,b2,b3,b4));
+       break;
+      default:
+       return;
+    };
+  } else {
+    // argus function
+    RooRealVar arg_m("arg_m","arg_m", 1.2, 0.8, 2);
+    RooRealVar arg_c("arg_c","arg_c", -50, -100, 0);
+    RooRealVar arg_p("arg_p","arg_p", 40, 0, 100);
+    RooArgusBG bg_func("background","bg_func",mass,arg_m,arg_c,arg_p);
   };
 
 
-  // argus function
-  RooRealVar arg_m("arg_m","arg_m", 1.2, 0.8, 2);
-  RooRealVar arg_c("arg_c","arg_c", -50, -100, 0);
-  RooRealVar arg_p("arg_p","arg_p", 40, 0, 100);
-  RooArgusBG bg_argus("background","bg_argus",mass,arg_m,arg_c,arg_p);
-
-
   // DEFINE FULL PDF ::::::::::::::::::::::::::::::::::::::::::::::::::::
-  //Double_t data_int = hh->Integral(fit_lb,fit_ub);
-  //Float_t purity_guess = 0.7;
-  //RooRealVar sig_nn("sig_nn","sig_nn",purity_guess*data_int,0,data_int);
-  //RooRealVar bg_nn("sig_nn","sig_nn",(1.0-purity_guess)*data_int,0,data_int);
-  //RooRealVar eta_nn("eta_nn","eta_nn",0.5*data_int,0,data_int);
-  
-  RooRealVar frac("frac","background fraction",0.7,0.01,1.0);
-  RooRealVar frac2("frac2","background fraction 2",0.3,0.0,1.0);
+  switch(binhash) {
+    default:
+      RooRealVar frac("frac","background fraction",0.7,0.01,1.0);
+      RooRealVar frac2("frac2","background fraction 2",0.03,0.0001,1.0); // (for etas)
+  };
   if(pionOnly) {
     RooAddPdf model(
       "model",
       "model",
-      RooArgList(sig_skew,bg_cheb),
+      RooArgList(sig_skew,bg_func),
       frac
     );
   } else {
     RooAddPdf model(
       "model",
       "model",
-      RooArgList(sig_skew,sig_skew_eta,bg_cheb),
+      RooArgList(sig_skew,sig_skew_eta,bg_func),
       RooArgSet(frac,frac2)
     );
   };
@@ -187,11 +277,13 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   RooPlot * plotframe = mass.frame(Title(plotframe_t.Data()));
   massdist.plotOn(
     plotframe,
+    Name("p_massdist"),
     DataError(RooAbsData::SumW2),
     MarkerColor(kRed)
   );
   model.plotOn(
     plotframe,
+    Name("p_model"),
     Range("Full"),
     LineColor(kBlack),
     LineWidth(3)
@@ -242,8 +334,6 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
 
 
 
-
-
   // determine signal window
   Float_t sig_lb; 
   Float_t sig_ub; 
@@ -255,6 +345,9 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
   sig_ub = mean + 3*stdev;
   Double_t sig_lb_bin = hh->FindBin(sig_lb);
   Double_t sig_ub_bin = hh->FindBin(sig_ub);
+  massL = sig_lb;
+  massM = mean;
+  massH = sig_ub;
 
 
   // obtain pion purity within signal window
@@ -262,11 +355,20 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
 
   RooAbsReal * model_int_roo = model.createIntegral(mass,NormSet(mass),Range("int_range"));
   RooAbsReal * sig_int_roo = sig_skew.createIntegral(mass,NormSet(mass),Range("int_range"));
-  RooAbsReal * bg_int_roo =  bg_cheb.createIntegral(mass,NormSet(mass),Range("int_range"));
+  RooAbsReal * bg_int_roo =  bg_func.createIntegral(mass,NormSet(mass),Range("int_range"));
+  if(!pionOnly) 
+    RooAbsReal * eta_int_roo = sig_skew_eta.createIntegral(mass,NormSet(mass),Range("int_range"));
+
+
   
   Double_t model_int = model_int_roo->getVal();
   Double_t sig_int = sig_int_roo->getVal();
   Double_t bg_int = bg_int_roo->getVal();
+  Double_t eta_int=0;
+  if(!pionOnly) {
+    eta_int = eta_int_roo->getVal();
+    bg_int += eta_int;
+  };
 
   printf("model_int -- %.4f\n",model_int);
   printf("sig_int -- %.4f\n",sig_int);
@@ -295,31 +397,37 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
 
 
   // tlatex's
-  const Int_t MAX_LINES = 20;
+  const Int_t MAX_LINES = 50;
   char txt[MAX_LINES][256];
   TLatex * ttxt[MAX_LINES];
   Int_t nt=0;
-  sprintf(txt[nt++],"#mu = %.4f GeV/c^{2}",mu);
-  sprintf(txt[nt++],"#sigma = %.4f GeV/c^{2}",sigma);
+  sprintf(txt[nt++],"#mu = %.4f GeV     #mu_{PDF} = %.4f GeV",mu,mean);
+  sprintf(txt[nt++],"#sigma = %.4f GeV     #sigma_{PDF} = %.4f GeV",sigma,stdev);
   sprintf(txt[nt++],"#alpha = %.4f",alpha);
   sprintf(txt[nt++],"");
   if(!pionOnly) {
-    sprintf(txt[nt++],"#mu(#eta) = %.4f GeV/c^{2}",mu_eta);
-    sprintf(txt[nt++],"#sigma(#eta) = %.4f GeV/c^{2}",sigma_eta);
+    sprintf(txt[nt++],"#mu(#eta) = %.4f GeV",mu_eta);
+    sprintf(txt[nt++],"#sigma(#eta) = %.4f GeV",sigma_eta);
     sprintf(txt[nt++],"#alpha(#eta) = %.4f",alpha_eta);
     sprintf(txt[nt++],"");
   };
+  TString units;
   for(int i=0; i<chebOrder; i++) {
-    sprintf(txt[nt++],"a_{%d} = %.4f",i,ch[i]);
+    if(i>0) units = Form("GeV^{-%d}",i);
+    else units = "";
+    sprintf(txt[nt++],"a_{%d} = %.4f %s",i,ch[i],units.Data());
   };
   sprintf(txt[nt++],"");
   sprintf(txt[nt++],"f = %.4f",frac.getVal());
   sprintf(txt[nt++],"");
   sprintf(txt[nt++],"signal: M_{#gamma#gamma}#in[%.3f, %.3f]",sig_lb,sig_ub);
+  sprintf(txt[nt++],"");
   sprintf(txt[nt++],"purity: F = %.2f%%  (bg @ %.2f%%)",pion_purity*100,background_frac*100);
   sprintf(txt[nt++],"");
-  //sprintf(txt[nt++],"#chi^{2}/NDF=%.4f",plotframe->chiSquare(7));
-
+  sprintf(txt[nt++],"#chi^{2}/NDF = %.4f",
+    plotframe->chiSquare("p_model","p_massdist"));
+  sprintf(txt[nt++],"");
+  sprintf(txt[nt++],"binhash = 0x%03X",binhash); 
 
 
 
@@ -340,7 +448,9 @@ void ExeFit(TH1D * hh, Int_t polyOrder_, Bool_t fitEta_) {
     canv->GetPad(2)->Range(0,0,1,1);
     Float_t pos=1-0.05;
     for(int k=0; k<nt; k++) {
-      ttxt[k] = new TLatex(0.03,pos-=0.06,txt[k]); 
+      ttxt[k] = new TLatex(0.03,pos-=0.04,txt[k]); 
       ttxt[k]->Draw();
     };
+
+  return canv;
 };
