@@ -129,10 +129,12 @@ void ReduceData(const char * filename="Outputset080Ba.root")
   */
 
   str->Branch("isConsistent",&isConsistent,"isConsistent/O");
+  /*
   str->Branch("b_pol",&b_pol,"b_pol/F");
   str->Branch("y_pol",&y_pol,"y_pol/F");
   str->Branch("b_pol_err",&b_pol_err,"b_pol_err/F");
   str->Branch("y_pol_err",&y_pol_err,"y_pol_err/F");
+  */
   str->Branch("pattern",&pattern,"pattern/I");
 
   

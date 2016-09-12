@@ -71,10 +71,14 @@ RunInfo::RunInfo()
   pol_tr->SetBranchAddress("y_pol_avg",&y_pol_avg);
   //pol_tr->SetBranchAddress("b_pol_err",&b_pol_err);
   //pol_tr->SetBranchAddress("y_pol_err",&y_pol_err);
-  b_pol_err=0; // for now..
-  y_pol_err=0; // for now..
+  //b_pol_err=0; // for now..
+  //y_pol_err=0; // for now..
   pol_tr->SetBranchAddress("b_pol_lw",&b_pol_lw);
   pol_tr->SetBranchAddress("y_pol_lw",&y_pol_lw);
+  pol_tr->SetBranchAddress("prod_pol_lw",&prod_pol_lw);
+  pol_tr->SetBranchAddress("b_pol_lw_E",&b_pol_lw_E);
+  pol_tr->SetBranchAddress("y_pol_lw_E",&y_pol_lw_E);
+  pol_tr->SetBranchAddress("prod_pol_lw_E",&prod_pol_lw_E);
   pol_tr->SetBranchAddress("lumi_run",&lumi_run);
   pol_tr->SetBranchAddress("lumi_fill",&lumi_fill);
 
@@ -239,7 +243,8 @@ Float_t RunInfo::BluePol(Int_t runnum0)
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return b_pol/100.0;
+    return b_pol;
+    //return b_pol_lw;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::BluePol returning 0 for missing run %d\n",runnum0);
@@ -253,7 +258,8 @@ Float_t RunInfo::YellPol(Int_t runnum0)
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return y_pol/100.0;
+    return y_pol;
+    //return y_pol_lw;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::YellPol returning 0 for missing run %d\n",runnum0);
@@ -261,14 +267,29 @@ Float_t RunInfo::YellPol(Int_t runnum0)
   };
 };
 
-// return blue beam polarization error // NOTE -- CURRENTLY RETURNS ONLY ZERO!!!!!!!!!!!!!!11
+// return blue*yellow beam polarization product
+Float_t RunInfo::ProdPol(Int_t runnum0)
+{
+  idx = IndexPol(runnum0);
+  if(idx>=0) {
+    pol_tr->GetEntry(idx);
+    return b_pol*y_pol;
+    //return prod_pol_lw;
+  }
+  else {
+    fprintf(stderr,"WARNING: RunInfo::ProdPol returning 0 for missing run %d\n",runnum0);
+    return 0;
+  };
+};
+
+// return blue beam polarization error 
 //  -- polarization error is not needed downstream of asymmetry analysis...
 Float_t RunInfo::BluePolErr(Int_t runnum0)
 {
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return b_pol_err;
+    return b_pol_lw_E;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::BluePolErr returning 0 for missing run %d\n",runnum0);
@@ -276,17 +297,32 @@ Float_t RunInfo::BluePolErr(Int_t runnum0)
   };
 };
 
-// return yellow beam polarization error // NOTE -- CURRENTLY RETURNS ONLY ZERO!!!!!!!!!!!!!!11
+// return yellow beam polarization error 
 //  -- polarization error is not needed downstream of asymmetry analysis...
 Float_t RunInfo::YellPolErr(Int_t runnum0)
 {
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return y_pol_err;
+    return y_pol_lw_E;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::YellPolErr returning 0 for missing run %d\n",runnum0);
+    return 0;
+  };
+};
+
+// return blue*yellow beam polarization product error 
+//  -- polarization error is not needed downstream of asymmetry analysis...
+Float_t RunInfo::ProdPolErr(Int_t runnum0)
+{
+  idx = IndexPol(runnum0);
+  if(idx>=0) {
+    pol_tr->GetEntry(idx);
+    return prod_pol_lw_E;
+  }
+  else {
+    fprintf(stderr,"WARNING: RunInfo::ProdPolErr returning 0 for missing run %d\n",runnum0);
     return 0;
   };
 };

@@ -32,8 +32,10 @@ class RunInfo : public TObject
     Bool_t RellumConsistent(Int_t runnum0); // true if rellumi consistent (defined for R3)
     Float_t BluePol(Int_t runnum0);
     Float_t YellPol(Int_t runnum0);
+    Float_t ProdPol(Int_t runnum0);
     Float_t BluePolErr(Int_t runnum0);
     Float_t YellPolErr(Int_t runnum0);
+    Float_t ProdPolErr(Int_t runnum0);
     Int_t BlueSpin(Int_t runnum0, Int_t bXing);
     Int_t YellSpin(Int_t runnum0, Int_t bXing);
     Bool_t Kicked(Int_t runnum0, Int_t bXing);
@@ -67,7 +69,8 @@ class RunInfo : public TObject
     Float_t b_pol_err,y_pol_err; // polarization uncertainty
     Float_t b_pol_avg,y_pol_avg; // beam current-weighted fill-by-fill polarization
     Int_t pattern_no;
-    Double_t b_pol_lw,y_pol_lw; // luminosity weighted average per-fill polarization
+    Double_t b_pol_lw,y_pol_lw,prod_pol_lw; // luminosity weighted average per-fill polarization
+    Double_t b_pol_lw_E,y_pol_lw_E,prod_pol_lw_E; // luminosity weighted average per-fill polarization
     Double_t lumi_run,lumi_fill; // lumi per-run, per-fill
 
 

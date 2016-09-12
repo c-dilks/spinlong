@@ -31,7 +31,7 @@ Double_t massL,massM,massH;
 // if polyOrder < 0, we use other trial fit function for BG
 // if fitEta = true, attempts to fit skewed gaussian to eta peak as well
 
-void Purity(Int_t eta_bin = 0,
+void PurityArgus(Int_t eta_bin = 0,
             Int_t en_bin = 0,
             Int_t pt_bin = 0,
             Int_t polyOrder = 3,
@@ -167,17 +167,25 @@ TCanvas * ExeFit(TH1D * hh,
   Float_t draw_lb; // drawing range
   Float_t draw_ub; // drawing range
   switch(binhash) {
+    case 0x000:
+      fit_lb = 0.1;
+      fit_ub = 0.6;
+      mass_lb = MASS_LB_DEF;
+      mass_ub = MASS_UB_DEF;
+      draw_lb = 0.05;
+      draw_ub = 0.8;
+      break;
     case 0x010:
       fit_lb = 0.1;
-      fit_ub = 0.55;
+      fit_ub = 0.65;
       mass_lb = MASS_LB_DEF;
       mass_ub = MASS_UB_DEF;
       draw_lb = 0.05;
       draw_ub = 0.8;
       break;
     case 0x020:
-      fit_lb = 0.125;
-      fit_ub = 0.525;
+      fit_lb = 0.1;
+      fit_ub = 0.75;
       mass_lb = MASS_LB_DEF;
       mass_ub = MASS_UB_DEF;
       draw_lb = 0.05;
@@ -185,7 +193,31 @@ TCanvas * ExeFit(TH1D * hh,
       break;
     case 0x030:
       fit_lb = 0.1;
-      fit_ub = 0.7;
+      fit_ub = 0.8;
+      mass_lb = MASS_LB_DEF;
+      mass_ub = MASS_UB_DEF;
+      draw_lb = 0.05;
+      draw_ub = 1.0;
+      break;
+    case 0x040:
+      fit_lb = 0.1;
+      fit_ub = 0.9;
+      mass_lb = MASS_LB_DEF;
+      mass_ub = MASS_UB_DEF;
+      draw_lb = 0.05;
+      draw_ub = 1.0;
+      break;
+    case 0x050:
+      fit_lb = 0.1;
+      fit_ub = 0.9;
+      mass_lb = MASS_LB_DEF;
+      mass_ub = MASS_UB_DEF;
+      draw_lb = 0.05;
+      draw_ub = 1.0;
+      break;
+    case 0x100:
+      fit_lb = 0.1;
+      fit_ub = 0.8;
       mass_lb = MASS_LB_DEF;
       mass_ub = MASS_UB_DEF;
       draw_lb = 0.05;
@@ -231,9 +263,15 @@ TCanvas * ExeFit(TH1D * hh,
       RooRealVar s2("s2","pion_alpha",3.3,1.0,10.0);
       break;
     default:
-      RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
-      RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
-      RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+      if(binhash & 0x100) {
+        RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
+        RooRealVar s1("s1","pion_sigma",0.03,0.01,0.2);
+        RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+      } else {
+        RooRealVar s0("s0","pion_mu",PION_MASS,0.1,0.3);
+        RooRealVar s1("s1","pion_sigma",0.06,0.01,0.2);
+        RooRealVar s2("s2","pion_alpha",3.0,1.0,10.0);
+      };
   };
   TString formu_gaus = "TMath::Gaus((mass-s0)/s1,0,1)";
   TString formu_skew = "(1+TMath::Erf((1/TMath::Sqrt(2))*s2*((mass-s0)/s1)))";

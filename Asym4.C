@@ -109,7 +109,7 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
   char phi_dist_den_e_n[asym_bins][4][eta_bins][pt_bins][en_bins][128];
   Double_t yield[4][eta_bins][pt_bins][en_bins]; // counts yields (only for a==3); used for error analysis
   Int_t runnum;
-  Float_t rellum,polar_b,polar_y;
+  Float_t rellum,polar_b,polar_y,polar_prod;
   Float_t weight_num,weight_den; // weight for asymmetry (MLM for A_LL)
   Float_t weight_num_e,weight_den_e; // weight for statistical error (by-product of MLM for A_LL);
   Int_t fill,pattern;
@@ -168,6 +168,7 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
               //rellum=1;     // for testing
               polar_b = RD->BluePol(runnum);
               polar_y = RD->YellPol(runnum);
+              polar_prod = RD->ProdPol(runnum);
               fill = RD->GetFill(runnum);
               isConsistent = RD->RellumConsistent(runnum);
               pattern = RD->Pattern(runnum);
@@ -176,10 +177,17 @@ void Asym4(const char * evclass="pi0", const char * filter_type="all",Int_t filt
               // polarization and rellum weighting; depends on which asymmetry
               if(a==3)
               {
+                /*
                 weight_num = polar_b * polar_y;
                 weight_den = pow(polar_b * polar_y, 2);
                 weight_num_e = pow(polar_b * polar_y, 2);
                 weight_den_e = pow(polar_b * polar_y, 2);
+                */
+                weight_num = polar_prod;
+                weight_den = pow(polar_prod, 2);
+                weight_num_e = pow(polar_prod, 2);
+                weight_den_e = pow(polar_prod, 2);
+
                 if(s==1 || s==2) 
                 {
                   weight_num *= rellum;
