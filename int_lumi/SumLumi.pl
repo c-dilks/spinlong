@@ -97,20 +97,25 @@ my $n_trgs = $idx-1;
 
 
 # print output
+my $width = 60;
+my $sep = "=" x $width . "\n";
+my $subsep = "- " x ($width/2) . "\n";
+my $head =  "trigger   lumi_all_runs   lumi_good_runs   lumi_pi0_runs\n";
 print("\n\nRUN ${year} LUMINOSITY TOTALS\n\ntriggered luminosity (sum lumi [pb^-1])\n");
-print "-" x 100;
-print("\n");
-print "trigger   lumi_all_runs   lumi_good_runs   lumi_pi0_runs\n";
+print $sep;
+print $head;
 for my $i (0 .. $n_trgs) {
-  print("$trgname[$i]   $total_sum[$i]   $good_sum[$i]   $pi0_sum[$i]\n");
+  if($i % 4 == 0) { print $subsep; }
+  printf("%-15s %-15.4f %-15.4f %-15.4f\n",
+    $trgname[$i],$total_sum[$i],$good_sum[$i],$pi0_sum[$i]);
 }
-print "-" x 100;
-print("\n\nde-prescale-ified total luminosity (sum lumi*prescale [pb^-1])\n");
-print "-" x 100;
-print("\n");
-print "trigger   lumi_all_runs   lumi_good_runs   lumi_pi0_runs\n";
+print $sep;
+print("\n\nun-prescaled total luminosity (sum lumi*prescale [pb^-1])\n");
+print $sep;
+print $head;
 for my $i (0 .. $n_trgs) {
-  print("$trgname[$i]   $total_sumps[$i]   $good_sumps[$i]   $pi0_sumps[$i]\n");
+  if($i % 4 == 0) { print $subsep; }
+  printf("%-15s %-15.4f %-15.4f %-15.4f\n",
+    $trgname[$i],$total_sumps[$i],$good_sumps[$i],$pi0_sumps[$i]);
 }
-print "-" x 100;
-print("\n");
+print $sep."\n";
