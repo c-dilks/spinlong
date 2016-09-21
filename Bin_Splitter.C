@@ -15,7 +15,7 @@
 //  - whichEtaCut = 0-all  1-large  2-small
 
 void Bin_Splitter(Int_t year=12,
-                  Int_t whichEtaCut=2)
+                  Int_t whichEtaCut=0)
 {
   // number of bins
   Int_t phi_bins = 1;

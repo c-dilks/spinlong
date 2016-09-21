@@ -32,6 +32,7 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   Bool_t kicked,isConsistent;
   Int_t runnum,bx;
   Float_t N12;
+  Float_t Et;
 
   Float_t E12_min,Pt_min,Eta_min,Phi_min;
   Float_t E12_max,Pt_max,Eta_max,Phi_max;
@@ -96,12 +97,18 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   TH1D * mass_dist[N_CLASS][N_TRIG];
   TH1D * z_dist[N_CLASS][N_TRIG];
 
+  TH2D * et_vs_pt[N_CLASS][N_TRIG];
+  TH2D * et_vs_mass[N_CLASS][N_TRIG];
+  TH2D * etminuspt_vs_mass[N_CLASS][N_TRIG];
+  TH2D * etminuspt_vs_pt[N_CLASS][N_TRIG];
+
   TH1D * pt_rdist[N_CLASS][N_TRIG][MAXRUNS];
   TH1D * en_rdist[N_CLASS][N_TRIG][MAXRUNS];
   TH1D * eta_rdist[N_CLASS][N_TRIG][MAXRUNS];
   TH1D * phi_rdist[N_CLASS][N_TRIG][MAXRUNS];
   TH1D * mass_rdist[N_CLASS][N_TRIG][MAXRUNS];
   TH1D * z_rdist[N_CLASS][N_TRIG][MAXRUNS];
+
 
   char pt_vs_eta_n[N_CLASS][N_TRIG][64];
   char en_vs_eta_n[N_CLASS][N_TRIG][64];
@@ -117,6 +124,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   char mass_vs_eta_n[N_CLASS][N_TRIG][64];
   char mass_dist_n[N_CLASS][N_TRIG][64];
   char z_dist_n[N_CLASS][N_TRIG][64];
+  char et_vs_pt_n[N_CLASS][N_TRIG][64];
+  char et_vs_mass_n[N_CLASS][N_TRIG][64];
+  char etminuspt_vs_mass_n[N_CLASS][N_TRIG][64];
+  char etminuspt_vs_pt_n[N_CLASS][N_TRIG][64];
 
   char pt_vs_eta_t[N_CLASS][N_TRIG][256];
   char en_vs_eta_t[N_CLASS][N_TRIG][256];
@@ -132,6 +143,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   char mass_vs_eta_t[N_CLASS][N_TRIG][256];
   char mass_dist_t[N_CLASS][N_TRIG][256];
   char z_dist_t[N_CLASS][N_TRIG][256];
+  char et_vs_pt_t[N_CLASS][N_TRIG][256];
+  char et_vs_mass_t[N_CLASS][N_TRIG][256];
+  char etminuspt_vs_mass_t[N_CLASS][N_TRIG][256];
+  char etminuspt_vs_pt_t[N_CLASS][N_TRIG][256];
 
   char pt_rdist_n[N_CLASS][N_TRIG][MAXRUNS][64];
   char en_rdist_n[N_CLASS][N_TRIG][MAXRUNS][64];
@@ -186,6 +201,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
       sprintf(mass_vs_eta_n[c][t],"%s_%s_mass_vs_eta",(LT->Name(t)).Data(),ev->Name(c));
       sprintf(mass_dist_n[c][t],"%s_%s_mass_dist",(LT->Name(t)).Data(),ev->Name(c));
       sprintf(z_dist_n[c][t],"%s_%s_z_dist",(LT->Name(t)).Data(),ev->Name(c));
+      sprintf(et_vs_pt_n[c][t],"%s_%s_et_vs_pt",(LT->Name(t)).Data(),ev->Name(c));
+      sprintf(et_vs_mass_n[c][t],"%s_%s_et_vs_mass",(LT->Name(t)).Data(),ev->Name(c));
+      sprintf(etminuspt_vs_mass_n[c][t],"%s_%s_etminuspt_vs_mass",(LT->Name(t)).Data(),ev->Name(c));
+      sprintf(etminuspt_vs_pt_n[c][t],"%s_%s_etminuspt_vs_pt",(LT->Name(t)).Data(),ev->Name(c));
 
       sprintf(pt_vs_eta_t[c][t],"%s %s --- p_{T} vs. #eta;#eta;p_{T}",
         (LT->Name(t)).Data(),ev->Title(c));
@@ -202,7 +221,6 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
       sprintf(y_vs_x_t[c][t],"%s %s --- y vs. x;x;y",
         (LT->Name(t)).Data(),ev->Title(c));
 
-      //printf("here\n");
       sprintf(z_vs_eta_t[c][t],"%s %s --- Z vs. #eta (%s cuts w/o Z-cut);#eta;Z",
         (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
       sprintf(z_vs_phi_t[c][t],"%s %s --- Z vs. #phi (%s cuts w/o Z-cut);#phi;Z",
@@ -213,13 +231,18 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
         (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
       sprintf(mass_vs_eta_t[c][t],"%s %s --- M vs. #eta (%s cuts w/o M-cut);#eta;M",
         (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
-      //printf("VVVVV\n");
       sprintf(mass_dist_t[c][t],"%s %s --- M distribution (%s cuts w/o M-cut);M",
         (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
-      //printf("%s\n",mass_dist_t[c][t]);
       sprintf(z_dist_t[c][t],"%s %s --- Z distribution (%s cuts w/o Z-cut);Z",
         (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
-      //printf("^^^^^\n");
+      sprintf(et_vs_pt_t[c][t],"%s %s --- E_{T} vs. p_{T} (%s cuts w/o M-cut);p_{T};E_{T}",
+        (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
+      sprintf(et_vs_mass_t[c][t],"%s %s --- E_{T} vs. M (%s cuts w/o M-cut);M;E_{T}",
+        (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
+      sprintf(etminuspt_vs_mass_t[c][t],"%s %s --- E_{T}-p_{T} vs. M (%s cuts w/o M-cut);M;E_{T}-p_{T}",
+        (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
+      sprintf(etminuspt_vs_pt_t[c][t],"%s %s --- E_{T}-p_{T} vs. p_{T} (%s cuts w/o M-cut);p_{T};E_{T}-p_{T}",
+        (LT->Name(t)).Data(),ev->Title(c),ev->Title(c));
 
       pt_vs_eta[c][t] = new TH2D(pt_vs_eta_n[c][t],pt_vs_eta_t[c][t],
         NBINS,Eta_min,Eta_max,NBINS,Pt_min,Pt_max);
@@ -248,6 +271,15 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
 
       z_dist[c][t] = new TH1D(z_dist_n[c][t],z_dist_t[c][t],NBINS,0,1);
       mass_dist[c][t] = new TH1D(mass_dist_n[c][t],mass_dist_t[c][t],NBINS,low_mass,high_mass);
+
+      et_vs_pt[c][t] = new TH2D(et_vs_pt_n[c][t],et_vs_pt_t[c][t],
+        4*NBINS,Pt_min,Pt_max,4*NBINS,Pt_min,2*Pt_max);
+      et_vs_mass[c][t] = new TH2D(et_vs_mass_n[c][t],et_vs_mass_t[c][t],
+        4*NBINS,low_mass,high_mass,4*NBINS,Pt_min,2*Pt_max);
+      etminuspt_vs_mass[c][t] = new TH2D(etminuspt_vs_mass_n[c][t],etminuspt_vs_mass_t[c][t],
+        3*NBINS,low_mass,high_mass,3*NBINS,-0.02,0.2);
+      etminuspt_vs_pt[c][t] = new TH2D(etminuspt_vs_pt_n[c][t],etminuspt_vs_pt_t[c][t],
+        3*NBINS,Pt_min,Pt_max,3*NBINS,-0.02,0.2);
 
       //printf("----- c=%d t=%d %s %s\n",c,t,ev->Name(c),(LT->Name(t)).Data());
       for(Int_t ru=0; ru<MAXRUNS; ru++)
@@ -466,11 +498,16 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
             if(LT->Fired(t))
             {
               if(ev->ValidWithoutMcut(c,t)) {
+                Et = TMath::Sqrt( TMath::Power(M12,2) + TMath::Power(Pt,2) );
                 mass_dist[c][t]->Fill(M12);
                 mass_vs_en[c][t]->Fill(E12,M12);
                 mass_vs_pt[c][t]->Fill(Pt,M12);
                 mass_vs_eta[c][t]->Fill(Eta,M12);
                 mass_rdist[c][t][runcount]->Fill(M12);
+                et_vs_pt[c][t]->Fill(Pt,Et);
+                et_vs_mass[c][t]->Fill(M12,Et);
+                etminuspt_vs_mass[c][t]->Fill(M12,Et-Pt);
+                etminuspt_vs_pt[c][t]->Fill(Pt,Et-Pt);
                 // fill kinematic-dependent mass distributions for pions
                 if(c==ev->Idx("pi0"))
                 {
@@ -524,6 +561,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   TObjArray * mass_vs_eta_arr[N_CLASS];
   TObjArray * mass_dist_arr[N_CLASS];
   TObjArray * z_dist_arr[N_CLASS];
+  TObjArray * et_vs_pt_arr[N_CLASS];
+  TObjArray * et_vs_mass_arr[N_CLASS];
+  TObjArray * etminuspt_vs_mass_arr[N_CLASS];
+  TObjArray * etminuspt_vs_pt_arr[N_CLASS];
   TObjArray * mass_dist_for_enbin_arr[10];
   TObjArray * mass_dist_for_ptbin_arr[10];
 
@@ -548,6 +589,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
   char mass_vs_eta_arr_n[N_CLASS][32];
   char mass_dist_arr_n[N_CLASS][32];
   char z_dist_arr_n[N_CLASS][32];
+  char et_vs_pt_arr_n[N_CLASS][32];
+  char et_vs_mass_arr_n[N_CLASS][32];
+  char etminuspt_vs_mass_arr_n[N_CLASS][32];
+  char etminuspt_vs_pt_arr_n[N_CLASS][32];
   char mass_dist_for_enbin_arr_n[10][32];
   char mass_dist_for_ptbin_arr_n[10][32];
 
@@ -575,6 +620,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
     sprintf(mass_vs_eta_arr_n[c],"%s_mass_vs_eta_arr",ev->Name(c));
     sprintf(mass_dist_arr_n[c],"%s_mass_dist_arr",ev->Name(c));
     sprintf(z_dist_arr_n[c],"%s_z_dist_arr",ev->Name(c));
+    sprintf(et_vs_pt_arr_n[c],"%s_et_vs_pt_arr",ev->Name(c));
+    sprintf(et_vs_mass_arr_n[c],"%s_et_vs_mass_arr",ev->Name(c));
+    sprintf(etminuspt_vs_mass_arr_n[c],"%s_etminuspt_vs_mass_arr",ev->Name(c));
+    sprintf(etminuspt_vs_pt_arr_n[c],"%s_etminuspt_vs_pt_arr",ev->Name(c));
 
     pt_vs_eta_arr[c] = new TObjArray();
     en_vs_eta_arr[c] = new TObjArray();
@@ -590,6 +639,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
     mass_vs_eta_arr[c] = new TObjArray();
     mass_dist_arr[c] = new TObjArray();
     z_dist_arr[c] = new TObjArray();
+    et_vs_pt_arr[c] = new TObjArray();
+    et_vs_mass_arr[c] = new TObjArray();
+    etminuspt_vs_mass_arr[c] = new TObjArray();
+    etminuspt_vs_pt_arr[c] = new TObjArray();
 
     for(Int_t ru=0; ru<MAXRUNS; ru++)
     {
@@ -633,6 +686,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
       mass_vs_eta_arr[c]->AddLast(mass_vs_eta[c][t]);
       mass_dist_arr[c]->AddLast(mass_dist[c][t]);
       z_dist_arr[c]->AddLast(z_dist[c][t]);
+      et_vs_pt_arr[c]->AddLast(et_vs_pt[c][t]);
+      et_vs_mass_arr[c]->AddLast(et_vs_mass[c][t]);
+      etminuspt_vs_mass_arr[c]->AddLast(etminuspt_vs_mass[c][t]);
+      etminuspt_vs_pt_arr[c]->AddLast(etminuspt_vs_pt[c][t]);
       for(Int_t ru=0; ru<=runcount; ru++)
       {
         pt_rdist_arr[c][ru]->AddLast(pt_rdist[c][t][ru]);
@@ -700,6 +757,10 @@ void DiagnosticsOneTight(const char * infile_name = "RedOutputset087Ba.root")
     mass_vs_eta_arr[c]->Write(mass_vs_eta_arr_n[c],TObject::kSingleKey);
     mass_dist_arr[c]->Write(mass_dist_arr_n[c],TObject::kSingleKey);
     z_dist_arr[c]->Write(z_dist_arr_n[c],TObject::kSingleKey);
+    et_vs_pt_arr[c]->Write(et_vs_pt_arr_n[c],TObject::kSingleKey);
+    et_vs_mass_arr[c]->Write(et_vs_mass_arr_n[c],TObject::kSingleKey);
+    etminuspt_vs_mass_arr[c]->Write(etminuspt_vs_mass_arr_n[c],TObject::kSingleKey);
+    etminuspt_vs_pt_arr[c]->Write(etminuspt_vs_pt_arr_n[c],TObject::kSingleKey);
   };
   for(Int_t k=0; k<10; k++)
   {

@@ -243,8 +243,8 @@ Float_t RunInfo::BluePol(Int_t runnum0)
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return b_pol;
-    //return b_pol_lw;
+    //return b_pol;
+    return b_pol_lw;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::BluePol returning 0 for missing run %d\n",runnum0);
@@ -258,8 +258,8 @@ Float_t RunInfo::YellPol(Int_t runnum0)
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return y_pol;
-    //return y_pol_lw;
+    //return y_pol;
+    return y_pol_lw;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::YellPol returning 0 for missing run %d\n",runnum0);
@@ -273,8 +273,8 @@ Float_t RunInfo::ProdPol(Int_t runnum0)
   idx = IndexPol(runnum0);
   if(idx>=0) {
     pol_tr->GetEntry(idx);
-    return b_pol*y_pol;
-    //return prod_pol_lw;
+    //return b_pol*y_pol;
+    return prod_pol_lw;
   }
   else {
     fprintf(stderr,"WARNING: RunInfo::ProdPol returning 0 for missing run %d\n",runnum0);
