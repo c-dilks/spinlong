@@ -154,7 +154,7 @@ void ReduceData(const char * filename="Outputset080Ba.root")
     // reduction cut
     if(/*M12>=0 &&*/ T->Fired("All"))
     {
-      printf("fired, runnum=%d, Bunchid7bit=%d\n",runnum,Bunchid7bit);
+      //printf("fired, runnum=%d, Bunchid7bit=%d\n",runnum,Bunchid7bit);
       if(runnum!=runnum_tmp)
       {
         /*
@@ -191,7 +191,12 @@ void ReduceData(const char * filename="Outputset080Ba.root")
 
       // add entry to tree iff there exists rellum and polarization data
       // AND if relative luminosity passed consistency check
-      if(fill!=0 && b_pol>0 && y_pol>0 && isConsistent)
+      //if(fill!=0 && b_pol>0 && y_pol>0 && isConsistent)
+      //
+
+      // reduction cut (polarization requirement omitted; PhiDists.C and DiagnosticOne.C 
+      // can take care of that)
+      if(fill!=0 && isConsistent)
       {
         if(blue_str==-1 && yell_str==-1) spin_str = 0;
         else if(blue_str==-1 && yell_str==1) spin_str = 1;
