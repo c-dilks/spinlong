@@ -1,15 +1,15 @@
 // combines diagsetfiles
 //
 
-void add_diag() {
-  //Bool_t printPDFs=false; // DEPRECATED; moved to print_diag.C
+void add_diag(Bool_t useTightCuts=false,
+              Int_t whichClass=0) {
   gROOT->Reset();
 
   gSystem->Load("src/RunInfo.so");
   RunInfo * RD = new RunInfo();
   if(!(RD->env->success)) return;
   LevelTwo * LT = new LevelTwo(RD->env);
-  EventClass * ev = new EventClass(RD->env,true); // false means we won't instantiate KinBounds; we don't need it here anyway
+  EventClass * ev = new EventClass(RD->env,useTightCuts?false:true);
 
 
 
@@ -18,7 +18,9 @@ void add_diag() {
   const Int_t MAX_NUM_FILES=200;
   TFile * diag_file[MAX_NUM_FILES]; 
   Int_t diag_file_cnt=0;
-  TString cmd = Form(".! ls %s/diag*.root | sort > toa_files.txt",RD->env->diagset_dir);
+  TString tight_str = useTightCuts ? "_tight":"";
+  TString cmd = Form(".! ls %s%s/diag*.root | sort > toa_files.txt",
+    RD->env->diagset_dir,tight_str.Data());
   gROOT->ProcessLine(cmd.Data());
   const Int_t filename_buffer=64;
   char filename[MAX_NUM_FILES][filename_buffer];
@@ -35,7 +37,10 @@ void add_diag() {
 
       // fgets reads in "returns"; this hack gets rid of them (expects format diagset_${year}/diag*.root
       sscanf(filename[diag_file_cnt],"%s",filename[diag_file_cnt]);
-      sscanf(filename[diag_file_cnt],"diagset_%*d/diagset%[^.].root",setname[diag_file_cnt]);
+      if(useTightCuts) 
+        sscanf(filename[diag_file_cnt],"diagset_%*d_tight/diagset%[^.].root",setname[diag_file_cnt]);
+      else
+        sscanf(filename[diag_file_cnt],"diagset_%*d/diagset%[^.].root",setname[diag_file_cnt]);
       
 
       if(strcmp(filename[diag_file_cnt],"")) {
@@ -139,14 +144,16 @@ void add_diag() {
 
 
   // define trigger thresholds tree
-  // -- sorry, but this tree has a weird and stupid structure... there is a branch
+  // -- sorry, but this tree has a weird structure... there is a branch
   //    called which_thresh which tells you which thresholds to believe; e.g., if you
   //    want to plot pt threshold vs. run index, you MUST make the cut which_thresh=="pt";
   //    then plot thresh vs. index
   //    It was done this way because the tree-filling loops below were written well before
   //    this tree was even considered, and it's way too difficult to change the loop structure now
-  TString outfile_n = Form("%s/setdep.root",RD->env->diagset_dir);
-  TFile * outfile = new TFile(outfile_n.Data(),"RECREATE");
+  TString outfile_n = Form("%s%s/setdep.root",RD->env->diagset_dir,tight_str.Data());
+  TFile * outfile;
+  if(whichClass==0) outfile = new TFile(outfile_n.Data(),"RECREATE");
+  else              outfile = new TFile(outfile_n.Data(),"UPDATE");
   TTree * threshtr = new TTree("threshtr","threshtr");
   Int_t th_runnum,th_index,th_class,th_trig;
   char which_thresh[32];
@@ -245,7 +252,7 @@ void add_diag() {
         trig_dist_arr->AddLast(trig_dist[s]);
         //printf("   %s --> %s stored in trig_dist_arr.At(\"%d\")\n",
           //keyname,trig_dist_arr->At(s)->GetName(),s);
-      }
+      } // eo trig_dist sector
 
       
       // overlap_matrices key sector
@@ -253,7 +260,6 @@ void add_diag() {
         chdir = (TDirectory*)key->ReadObj();
         chdir->cd();
         for(int oc=0; oc<NCLASSES; oc++) {
-
           old_mix_n = Form("/overlap_matrices/%s_trig_fms_mix",ev->Name(oc));
           old_mix[oc][s] = (TH2D*) diag_file[s]->Get(old_mix_n.Data());
 
@@ -268,10 +274,10 @@ void add_diag() {
           mix_arr[oc]->AddLast(old_mix[oc][s]);
         };
         diag_file[s]->cd();
-      }
+      } // eo overlap_matrices sector
 
 
-      // rdists sector
+      // rdists & threshtr sector
       else if(!strcmp(keyname,"rdists")) {
         chdir = (TDirectory*)key->ReadObj();
         chdir->cd();
@@ -321,6 +327,10 @@ void add_diag() {
                   sprintf(which_thresh,"%s","pt");
 
                   // pT thresh at 2/3 of peak height
+                  // algorithm written for regular non-tight diagset files
+                  // if you run it on diagset_tight files, it *should* produce
+                  // the same result... but it doesn't really matter since the 
+                  // diagset_tight files are not used for determining thresholds
                   binn = rdist[rc][rtp][rint][rtg][s]->FindBin(thresh);
                   maxx = rdist[rc][rtp][rint][rtg][s]->GetBinContent(binn);
                   curr = maxx;
@@ -328,8 +338,13 @@ void add_diag() {
                     binn--;
                     curr = rdist[rc][rtp][rint][rtg][s]->GetBinContent(binn);
                   };
-                  thresh = rdist[rc][rtp][rint][rtg][s]->GetBinCenter(binn);
-                  if(binn<=1) fprintf(stderr,"WARNING: binn<=1 (event class=%d, trigger=%s)\n",rc,rtrig);
+                  if(binn<=1) {
+                    //fprintf(stderr,"WARNING: binn<=1 (event class=%d, trigger=%s)\n",rc,rtrig);
+                    thresh=0;
+                  }
+                  else thresh = rdist[rc][rtp][rint][rtg][s]->GetBinCenter(binn);
+
+                  if(thresh<0) thresh=0;
 
                   threshtr->Fill();
                 };
@@ -355,6 +370,7 @@ void add_diag() {
                   thresh = curr_fit->GetParameter(1);
                   thresh_err = curr_fit->GetParError(1);
                   sprintf(which_thresh,"%s","en");
+                  if(thresh<0) thresh=0;
                   threshtr->Fill();
                 };
               };
@@ -371,7 +387,7 @@ void add_diag() {
             new_rarr[rc][rtp][rtg]->AddLast(rdist[rc][rtp][rint][rtg][s]);
           };
         };
-      }
+      } // eo rdist & threshtr sector
 
 
 
@@ -387,11 +403,16 @@ void add_diag() {
         if(strcmp(classname_tmp,"mass")) {
           // get class number cc and plot number pp
           cc = ev->Idx(classname_tmp);
+
+
           if(cc!=cc_tmp) {
             cc_tmp = cc;
             pp=0;
           }
           else pp++;
+          
+          if(cc!=whichClass) continue;  // only do one class at a time for kinematic correlations (memory leak "patch")
+
           //printf("   %s -- %s->%d -- %s->%d\n",keyname,
             //classname_tmp,cc,plotname_tmp,pp);
 
@@ -444,29 +465,62 @@ void add_diag() {
             mass_out[nk][nm][xx]->AddLast(mass_dist[nk][nm][xx][s]);
           };
         };
-      };
-    };
-  };
+      }; // eo generic TObjArray sector
+
+    }; // eo key loop
+  }; // eo diagset file loop
 
 
 
-  // write trig_dist
+  // write trig_dist (only done if whichClass==0) 
   outfile->cd();
-  trig_dist_arr->Write("trig_dist_arr",TObject::kSingleKey);
+  if(whichClass==0) trig_dist_arr->Write("trig_dist_arr",TObject::kSingleKey);
 
-  // write overlap_matrices
-  TDirectory * om_dir = outfile->mkdir("overlap_matrices");
+  // write overlap_matrices (only done if whichClass==0)
+  TDirectory * om_dir;
   TDirectory * om_classdir[NCLASSES];
   TString om_classname;
 
-  for(int k=0; k<NCLASSES; k++ ) {
-    om_dir->cd();
-    om_classname = Form("%s_overlap",ev->Name(k));
-    om_classdir[k] = om_dir->mkdir(om_classname.Data());
-    om_classdir[k]->cd();
-    mix_arr[k]->Write(mix_arr_name[k].Data(),TObject::kSingleKey);
+  if(whichClass==0) {
+    om_dir = outfile->mkdir("overlap_matrices");
+    for(int k=0; k<NCLASSES; k++ ) {
+      om_dir->cd();
+      om_classname = Form("%s_overlap",ev->Name(k));
+      om_classdir[k] = om_dir->mkdir(om_classname.Data());
+      om_classdir[k]->cd();
+      mix_arr[k]->Write(mix_arr_name[k].Data(),TObject::kSingleKey);
+    };
+    outfile->cd();
   };
-  outfile->cd();
+
+
+  // write en- and pt-dependent mass dists (only if whichClass==0)
+  TDirectory * massdir;
+  TDirectory * masskindir[2*NMASSES];
+  TString kinname;
+  TString masskindir_name;
+
+
+  if(whichClass==0) {
+    massdir = outfile->mkdir("mass");
+    massdir->cd();
+
+    for(int k=0; k<2; k++ ) {
+      kinname = (k==0) ? "en":"pt";
+      for(int m=0; m<NMASSES; m++) {
+        masskindir_name = Form("%s_%d",kinname.Data(),m);
+        masskindir[m+k*NMASSES] = massdir->mkdir(masskindir_name.Data());
+        masskindir[m+k*NMASSES]->cd();
+        for(int t=0; t<NTRIGS; t++) 
+          mass_out[k][m][t]->Write(mass_out_name[k][m][t].Data(),TObject::kSingleKey);
+        massdir->cd();
+      };
+    };
+    outfile->cd();
+  };
+
+  // write threshtr (only if whichClass==0) 
+  if(whichClass==0) threshtr->Write();
 
 
 
@@ -485,6 +539,7 @@ void add_diag() {
   TCanvas * canv = new TCanvas("canv","canv",200,200);
   gStyle->SetOptStat(0);
   for(int c=0; c<NCLASSES; c++) {
+    if(c!=whichClass) continue;
     sprintf(classdir_n[c],"%s",classname[c][0][0]);
     classdir[c] = outfile->mkdir(classdir_n[c]);
     classdir[c]->cd();
@@ -520,25 +575,4 @@ void add_diag() {
     outfile->cd();
   };
 
-  // write en- and pt-dependent mass dists
-  TDirectory * massdir = outfile->mkdir("mass");
-  TDirectory * masskindir[2*NMASSES];
-  TString kinname;
-  TString masskindir_name;
-  massdir->cd();
-
-  for(int k=0; k<2; k++ ) {
-    kinname = (k==0) ? "en":"pt";
-    for(int m=0; m<NMASSES; m++) {
-      masskindir_name = Form("%s_%d",kinname.Data(),m);
-      masskindir[m+k*NMASSES] = massdir->mkdir(masskindir_name.Data());
-      masskindir[m+k*NMASSES]->cd();
-      for(int t=0; t<NTRIGS; t++) 
-        mass_out[k][m][t]->Write(mass_out_name[k][m][t].Data(),TObject::kSingleKey);
-      massdir->cd();
-    };
-  };
-  outfile->cd();
-
-  threshtr->Write();
 };

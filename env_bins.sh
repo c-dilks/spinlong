@@ -4,16 +4,16 @@
 
 export SPINDIR=$(pwd)
 
-export YEAR=13
-export COUNTS_FILE=/home/dilks/h5/root12fms/scalers13/counts.root
-export RTREE_FILE=/home/dilks/h5/root12fms/scalers13/rtree.root
-export POL_FILE=/home/dilks/polarLUT/pol_13.root
-export OUTPUT_DIR=/home/dilks/h5/Output
-export REDSET_DIR=/home/dilks/h5/redset
-export PHISET_DIR=/home/dilks/h5/phiset
-export DIAGSET_DIR=diagset_13
-export MASSSET_DIR=massset_13
-export MASSCUTS_FILE=massset_13/mass_cuts.dat
+export YEAR=12
+export COUNTS_FILE=/home/dilks/h4/root12fms/scalers12/counts.root
+export RTREE_FILE=/home/dilks/h4/root12fms/scalers12/rtree.root
+export POL_FILE=/home/dilks/polarLUT/pol_12.root
+export OUTPUT_DIR=/home/dilks/h4/Output
+export REDSET_DIR=/home/dilks/h4/redset
+export PHISET_DIR=/home/dilks/h4/phiset
+export DIAGSET_DIR=diagset_12
+export MASSSET_DIR=massset_12
+export MASSCUTS_FILE=massset_12/mass_cuts.dat
 export EXCLUSION_LIST=exclusion_list
 
 export MASS_CUT_TYPE=en
