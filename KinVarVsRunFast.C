@@ -34,6 +34,35 @@ void KinVarVsRunFast(Bool_t useTightCuts=false) {
   const Int_t N_CLASS = N_CLASS_tmp;
 
 
+  // read threshtr
+  TTree * tr = (TTree*) infile->Get("threshtr");
+  Int_t runnum,index,classnum,trignum;
+  Float_t thresh,thresh_err;
+  char which_thresh[16];
+  tr->SetBranchAddress("runnum",&runnum);
+  tr->SetBranchAddress("index",&index);
+  tr->SetBranchAddress("class",&classnum);
+  tr->SetBranchAddress("trig",&trignum);
+  tr->SetBranchAddress("thresh",&thresh);
+  tr->SetBranchAddress("thresh_err",&thresh_err);
+  tr->SetBranchAddress("which_thresh",which_thresh);
+  Float_t thresh_arr[N_CLASS][2][N_TRIG][2000]; // [class] [pt/en] [trig] [assumed max run index]
+  TGraph * thresh_gr[N_CLASS][2][N_TRIG]; // [class] [pt/en] [trig]
+
+  Int_t kswitch;
+  printf("now filling thresh_arr\n");
+  for(Int_t x=0; x<tr->GetEntries(); x++) {
+    tr->GetEntry(x); 
+    if(!strcmp(which_thresh,"pt")) kswitch=0;
+    else if(!strcmp(which_thresh,"en")) kswitch=1;
+    else kswitch=-1;
+
+    if(kswitch>0) 
+      thresh_arr[classnum][kswitch][trignum][index] = thresh;
+  };
+  printf("done\n");
+
+
   // define vars & pointers
   TH1D * khist;
   TH2D * kvr[N_CLASS][N_KIN][N_TRIG]; // [class]  [kin]  [trigger]
@@ -49,6 +78,9 @@ void KinVarVsRunFast(Bool_t useTightCuts=false) {
   Double_t bcont,bcent;
   Int_t binn;
   Int_t nruns;
+  Int_t count=0;
+  Int_t runnum_curr;
+  TString title_tmp;
 
 
   // main loop
@@ -71,6 +103,10 @@ void KinVarVsRunFast(Bool_t useTightCuts=false) {
         for(Int_t r=0; r<nruns; r++) {
           khist = (TH1D*) arr->At(r);
 
+          title_tmp = Form("%s",khist->GetTitle());
+          sscanf(title_tmp(title_tmp.Length()-8,8).Data(),"%d",&runnum_curr);
+
+
           // define 2d histogram, if it's the first run
           if(r==0) {
             kvr_n[c][k][t] = Form("%s_%s_%s_vs_run",ev->Name(c),kin_name[k].Data(),(LT->Name(t)).Data());
@@ -85,17 +121,29 @@ void KinVarVsRunFast(Bool_t useTightCuts=false) {
                                     binlow[c][k][t],
                                     binhigh[c][k][t]
                                    );
+            if(k==0 || k==1) thresh_gr[c][k][t] = new TGraph();
           };
 
-          integral = khist->Integral();
-          khist->Scale(1/integral);
+          if(khist->GetEntries() > 0) {
 
-          for(Int_t b=1; b<nbins[c][k][t]; b++) {
-            bcont = khist->GetBinContent(b);
-            bcent = khist->GetBinCenter(b);
-            
-            binn = kvr[c][k][t]->FindBin(r,bcent);
-            kvr[c][k][t]->SetBinContent(binn,bcont);
+
+            integral = khist->Integral();
+            khist->Scale(1/integral);
+
+            for(Int_t b=1; b<nbins[c][k][t]; b++) {
+              bcont = khist->GetBinContent(b);
+              bcent = khist->GetBinCenter(b);
+              
+              binn = kvr[c][k][t]->FindBin(count,bcent);
+              kvr[c][k][t]->SetBinContent(binn,bcont);
+            };
+
+            if(k==0 || k==1) {
+              thresh_gr[c][k][t]->SetPoint(count,count,thresh_arr[c][k][t][RD->Index(runnum_curr)]);
+            };
+
+            count++;
+
           };
         }; // eo for r
       }; // eo for t
@@ -113,4 +161,8 @@ void KinVarVsRunFast(Bool_t useTightCuts=false) {
       };
     };
   };
+
+  new TCanvas();
+  kvr[1][0][1]->Draw("colz");
+  thresh_gr[1][0][1]->Draw("L");
 };
